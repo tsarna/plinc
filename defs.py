@@ -13,36 +13,28 @@ early = """
 % define the ']' operator.
 % the contained ops need to be .doexec so they're run when called from '}'
 
-systemdict (]) [
+(]) [
     /counttomark load .doexec
     /array load .doexec
     /astore load .doexec
     /exch load .doexec
     /pop load .doexec
-counttomark array astore cvx exch pop put
+counttomark array astore cvx exch pop def
 
 
 
 % define the '}' operator
 
-systemdict (}) [
+(}) [
     /.decscan load .doexec
     (]) load .doexec
     /cvx load .doexec
-] .doexec put
+] .doexec def
 
 
 
 % define the 'bind' operator
-systemdict /bind {} dup exec put
-
-
-
-% define the 'def' operator
-
-systemdict /def {
-    currentdict 3 1 roll put
-} bind put
+/bind {} dup exec def
 
 
 
