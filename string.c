@@ -4,23 +4,13 @@
 #include <string.h>
 
 
-typedef struct _PlincString PlincString;
-struct _PlincString {
-    PlincUInt   Flags;
-};
-
-
-
 void *
 PlincNewString(PlincHeap *h, PlincUInt size)
 {
-    PlincString *r = NULL;
+    void *r = NULL;
 
     r = PlincAllocHeap(h, size);
-
     if (r) {
-        r->Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | size;
-
         memset(r, 0, size);
     }
 
