@@ -524,7 +524,7 @@ void *
 PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
 {
     PlincVal v;
-    int c, depth = 0;
+    int c, depth = 0, len = 0;
     void *r = NULL;
     
     do {
@@ -555,14 +555,48 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
             goto value;
          
         case '{':
-            v.Flags = PLINC_TYPE_NAME | PLINC_ATTR_DOEXEC;
-            v.Val.Ptr = i->LeftBrace;
-            goto value;
+            if (depth) {
+                if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+                    r = i->stackoverflow;
+                    goto done;
+                }
+                i->ExecStack.Len++;
+                PLINC_TOPDOWN(i->ExecStack, 0).Val.Int = len;
+                len = 0;
+            }
+            depth++;
+            continue;
 
         case '}':
-            v.Flags = PLINC_TYPE_NAME | PLINC_ATTR_DOEXEC;
-            v.Val.Ptr = i->RightBrace;
-            goto value;
+            if (depth) {
+                depth--;
+                v.Val.Ptr = PlincNewArray(i->Heap, len);
+                if (v.Val.Ptr) {
+                    v.Flags = PLINC_TYPE_ARRAY | len;
+                    while (len) {
+                        len--;
+                        PlincPutArray(i, v.Val.Ptr, len, &PLINC_OPTOPDOWN(i, 0));
+                        PLINC_OPPOP(i);
+                    }
+                    if (depth) {
+                        PLINC_OPPUSH(i, v);
+                    }
+                } else {
+                    r = i->VMerror;
+                    goto done;
+                }
+
+                if (depth) {
+                    len = PLINC_TOPDOWN(i->ExecStack, 0).Val.Int + 1;
+                    i->ExecStack.Len--;
+                    continue;
+                } else {
+                    goto value;
+                }
+            } else {
+                r = i->syntaxerror;
+                goto done;
+            }
          
         case '<':
             c = PlincRead(f);
@@ -664,31 +698,40 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
             }
         }
 
-        goto next;
+        return i->invalidaccess;    /* XXX shouldn't happen */
         
     value:
         if (depth) {
             if (!PLINC_OPSTACKROOM(i, 1)) {
-                return i->stackoverflow;
+                r = i->stackoverflow;
+                goto done;
             } else {
                 PLINC_OPPUSH(i, v);
+                len++;
             }
             continue;
         } else {
             *val = v;
-            break;
+            return NULL;
         }
         
-    done:
-        /* unwind if depth */
-        return r;
-    
-    next:
-        ;
-       
     } while (1);
 
-    return NULL; /* XXX */
+    done:
+        while (depth) {
+            while (len) {
+                PLINC_OPPOP(i);
+                len--;
+            }
+            depth--;
+            if (depth) {
+                len = PLINC_TOPDOWN(i->ExecStack, 0).Val.Int;
+                i->ExecStack.Len--;
+            }
+        }
+
+        /* XXX unwind if depth */
+        return r;
 }
 
 
