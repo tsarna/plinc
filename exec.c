@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.13 1999/01/21 18:09:26 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.14 1999/01/21 23:34:09 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -286,13 +286,13 @@ op_ifelse(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {"{",           op_rbrace},
-    {".decscan",    op_dot_decscan},
-    {"exec",        op_exec},
-    {"if",          op_if},
-    {"ifelse",      op_ifelse},
+    {op_rbrace,         "{"},
+    {op_dot_decscan,    ".decscan"},
+    {op_exec,           "exec"},
+    {op_if,             "if"},
+    {op_ifelse,         "ifelse"},
 
-    {NULL,          NULL}
+    {NULL,              NULL}
 };
 
 

@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.9 1999/01/20 20:30:12 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.10 1999/01/22 18:59:10 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -357,24 +357,21 @@ op_xcheck(PlincInterp *i)
 
 
 
-
-
 static const PlincOp ops[] = {
-    {"pop",         op_pop},
-    {"exch",        op_exch},
-    {"dup",         op_dup},
+    {op_pop,            "pop"},
+    {op_exch,           "exch"},
+    {op_dup,            "dup"},
 
-    {"index",       op_index},
-    {"roll",        op_roll},
-    {"clear",       op_clear},
-    {"count",       op_count},
-    {"cleartomark", op_cleartomark},
-    {"counttomark", op_counttomark},
-
-    {"cvlit",       op_cvlit},
-    {"cvx",         op_cvx},
-    {".doexec",     op_dot_doexec},
-    {"xcheck",      op_xcheck},
+    {op_index,          "index"},
+    {op_roll,           "roll"},
+    {op_clear,          "clear"},
+    {op_count,          "count"},
+    {op_cleartomark,    "cleartomark"},
+    {op_counttomark,    "counttomark"},
+    {op_cvlit,          "cvlit"},
+    {op_cvx,            "cvx"},
+    {op_dot_doexec,     ".doexec"},
+    {op_xcheck,         "xcheck"},
 
     {NULL,          NULL}
 };

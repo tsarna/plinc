@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.3 1999/01/20 20:30:12 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.4 1999/01/23 01:11:21 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -102,9 +102,9 @@ op_length(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {"put",         op_put},
-    {"get",         op_get},
-    {"length",      op_length},
+    {op_put,        "put"},
+    {op_get,        "get"},
+    {op_length,     "length"},
 
     {NULL,          NULL}
 };

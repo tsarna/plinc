@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.15 1999/01/20 23:14:23 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.16 1999/01/21 18:09:26 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -104,7 +104,7 @@ PlincInitErrorNames(PlincInterp *i)
 
     DEFERR(typecheck);
     DEFERR(undefined);
-
+    DEFERR(undefinedfilename);
     DEFERR(undefinedresult);
     DEFERR(unmatchedmark);
     DEFERR(unregistered);

@@ -1,4 +1,4 @@
-/* $Endicor: string.c,v 1.2 1999/01/20 01:36:21 tsarna Exp $ */
+/* $Endicor: string.c,v 1.3 1999/01/20 20:30:12 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -105,8 +105,8 @@ op_cvn(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {"string",      op_string},
-    {"cvn",         op_cvn},
+    {op_string,     "string"},
+    {op_cvn,        "cvn"},
 
     {NULL,          NULL}
 };

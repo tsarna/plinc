@@ -1,4 +1,4 @@
-/* $Endicor: loop.c,v 1.1 1999/01/20 23:14:23 tsarna Exp $ */
+/* $Endicor: loop.c,v 1.2 1999/01/24 03:33:47 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdlib.h>
@@ -156,12 +156,12 @@ op_exit(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {".looper",     op_dot_looper}, /* must be first */
-    {"repeat",      op_repeat},
-    {"loop",        op_loop},
-    {"exit",        op_exit},
+    {op_dot_looper,     ".looper"}, /* must be first */
+    {op_repeat,         "repeat"},
+    {op_loop,           "loop"},
+    {op_exit,           "exit"},
 
-    {NULL,          NULL}
+    {NULL,              NULL}
 };
 
 

@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.13 1999/01/21 23:34:09 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.14 1999/01/23 01:11:21 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -447,15 +447,15 @@ op_countdictstack(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {"dict",            op_dict},
-    {"maxlength",       op_maxlength},
-    {"begin",           op_begin},
-    {"end",             op_end},
-    {"load",            op_load},
-    {"known",           op_known},
-    {"where",           op_where},
-    {"currentdict",     op_currentdict},
-    {"countdictstack",  op_countdictstack},
+    {op_dict,           "dict"},
+    {op_maxlength,      "maxlength"},
+    {op_begin,          "begin"},
+    {op_end,            "end"},
+    {op_load,           "load"},
+    {op_known,          "known"},
+    {op_where,          "where"},
+    {op_currentdict,    "currentdict"},
+    {op_countdictstack, "countdictstack"},
 
     {NULL,              NULL}
 };

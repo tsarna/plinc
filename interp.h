@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.16 1999/01/21 18:09:26 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.17 1999/01/22 18:59:10 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -72,7 +72,7 @@ struct _PlincInterp {
 
     void           *typecheck;
     void           *undefined;
-
+    void           *undefinedfilename;
     void           *undefinedresult;
     void           *unmatchedmark;
     void           *unregistered;
@@ -85,8 +85,8 @@ struct _PlincInterp {
 
 typedef struct _PlincOp PlincOp;
 struct _PlincOp {
-    char    *Name;
     void  *(*Func)(PlincInterp *);
+    char    *Name;
 };
 
 

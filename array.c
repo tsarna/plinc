@@ -1,4 +1,4 @@
-/* $Endicor: array.c,v 1.7 1999/01/20 20:30:12 tsarna Exp tsarna $ */
+/* $Endicor: array.c,v 1.8 1999/01/20 23:14:23 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -181,10 +181,10 @@ op_astore(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {"array",       op_array},
+    {op_array,      "array"},
 
-    {"aload",       op_aload},
-    {"astore",      op_astore},
+    {op_aload,      "aload"},
+    {op_astore,     "astore"},
 
     {NULL,          NULL}
 };
