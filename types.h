@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.3 1999/01/14 01:26:00 tsarna Exp $ */
+/* $Endicor: types.h,v 1.4 1999/01/14 05:02:15 tsarna Exp tsarna $ */
 
 #include <sys/types.h>
 
@@ -26,11 +26,14 @@ typedef u_int32_t   PlincUInt;
 #define PLINC_ATTR_NOREAD   0x40000000
 #define PLINC_ATTR_NOWRITE  0x20000000
 #define PLINC_ATTR_NOEXEC   0x10000000
-#define PLINC_TYPE_MASK     0x0FF00000
+#define PLINC_ATTR_COWED    0x08000000
+#define PLINC_ATTR_DOEXEC   0x04000000
+#define PLINC_TYPE_MASK     0x03F00000
 #define PLINC_SIZE_MASK     0x000FFFFF
 
 #define PLINC_LIT(x)        ((x)->Flags & PLINC_ATTR_LIT)
 #define PLINC_EXEC(x)       (!((x)->Flags & PLINC_ATTR_LIT))
+#define PLINC_DOEXEC(x)     (!((x)->Flags & PLINC_ATTR_DOEXEC))
 #define PLINC_CAN_READ(x)   (!((x)->Flags & PLINC_ATTR_NOREAD))
 #define PLINC_CAN_WRITE(x)  (!((x)->Flags & PLINC_ATTR_NOWRITE))
 #define PLINC_CAN_EXEC(x)   (!((x)->Flags & PLINC_ATTR_NOEXEC))
@@ -60,12 +63,13 @@ struct _PlincInterp;
  
 typedef struct _PlincVal PlincVal;
 struct _PlincVal {
-    PlincUInt       Flags;
+    PlincUInt               Flags;
     union {
-        void       *Ptr;
-        PlincInt    Int;
-        float       Real;
-        void     *(*Func)(struct _PlincInterp *);
+        void               *Ptr;
+        PlincInt            Int;
+        float               Real;
+        struct _PlincOp    *Op;
+        void               *(*Func)(struct _PlincInterp *);
     } Val;
 };
 

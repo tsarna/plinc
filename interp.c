@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.2 1999/01/14 02:55:42 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.3 1999/01/14 05:02:15 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -28,6 +28,8 @@ PlincNewInterp(size_t heapsize)
             }
         }
         if (ok) {
+            i->ScanLevel = 0;
+            
             PlincInitErrorNames(i);
             PlincInitVals(i);
             PlincInitStackOps(i);
@@ -69,10 +71,18 @@ PlincInitErrorNames(PlincInterp *i)
 
     DEFERR(dictfull);
 
+    DEFERR(execstackoverflow);
+
     DEFERR(invalidaccess);
 
+    DEFERR(rangecheck);
     DEFERR(stackoverflow);
     DEFERR(stackunderflow);
+    DEFERR(syntaxerror);
+
+    DEFERR(typecheck);
+
+    DEFERR(VMerror);
 }
 
 
@@ -100,9 +110,13 @@ PlincInitVals(PlincInterp *i)
     v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;
     name = DEFNAME("mark");
     PlincPutDictName(i, i->systemdict, name, &v);
-    name = DEFNAME(".mark");
+    name = DEFNAME("[");
     PlincPutDictName(i, i->systemdict, name, &v);
-
+    i->LeftBracket = name;
+    name = DEFNAME("<<");
+    PlincPutDictName(i, i->systemdict, name, &v);
+    i->LeftAngleAngle = name;
+    
     /* true, false */
     v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
     v.Val.Int = 1;
@@ -116,6 +130,12 @@ PlincInitVals(PlincInterp *i)
     v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
     name = DEFNAME("null");
     PlincPutDictName(i, i->systemdict, name, &v);
+
+    /* define some names */
+    i->RightBracket = DEFNAME("]");
+    i->LeftBrace = DEFNAME("{");
+    i->RightBrace = DEFNAME("}");
+    i->RightAngleAngle = DEFNAME(">>");
 }
 
 

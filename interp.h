@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.1 1999/01/14 01:26:00 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.2 1999/01/14 05:02:15 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -33,6 +33,16 @@ struct _PlincInterp {
     PlincStack      DictStack;
     PlincStack      ExecStack;
 
+    int             ScanLevel;
+    
+    /* commonly needed names */
+    void           *LeftBracket;
+    void           *RightBracket;
+    void           *LeftBrace;
+    void           *RightBrace;
+    void           *LeftAngleAngle;
+    void           *RightAngleAngle;
+    
     /* Dicts */
     PlincDict      *systemdict;
     PlincDict      *userdict;
@@ -41,10 +51,18 @@ struct _PlincInterp {
     /* errors */
     void           *dictfull;
 
+    void           *execstackoverflow;
+    
     void           *invalidaccess;
 
+    void           *rangecheck;
     void           *stackunderflow;
     void           *stackoverflow;
+    void           *syntaxerror;
+
+    void           *typecheck;
+
+    void           *VMerror;
 };
 
 
