@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.8 1999/01/21 23:34:35 tsarna Exp tsarna $
+# $Endicor: defs.py,v 1.9 1999/01/21 23:36:55 tsarna Exp $
 
 
 early = """
@@ -8,8 +8,8 @@ early = """
 
 % The odd style here is a result of the fact that it's early in
 % interpreter initialization, and we have only the C-implemented
-% operators available.  In fact, the point here is to define them. 
-
+% operators available.  In fact, the point here is to define
+% the operators ususally used in defining stuff.
 
 
 % define the ']' operator.
@@ -35,23 +35,24 @@ systemdict (}) [
 
 
 
+% define the 'bind' operator
+systemdict /bind {} dup exec put
+
+
+
 % define the 'def' operator
 
 systemdict /def {
     currentdict 3 1 roll put
-} put
-
-
-
-% define the 'bind' operator
-/bind {} dup exec def
+} bind put
 
 
 
 % define the '>>' operator
 
 (>>) {
-    counttomark 2 idiv dup dict exch 
+    counttomark dup 2 mod 1 eq {rangecheck} if  %%% rangecheck XXX
+    2 idiv dup dict exch 
         { dup 4 2 roll put }
     repeat 
     exch pop
