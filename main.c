@@ -32,7 +32,7 @@ main(int argc, char *argv[])
             | PLINC_ATTR_NOEXEC | PLINC_ATTR_LIT;
         i->StdOut.Val.Ptr = &so;
         
-        fprintf(stderr, "> ");
+        r = PlincExecStr(i, "prompt\n");
         while (fgets(buf, sizeof(buf), stdin)) {
             r = PlincExecStr(i, buf);
             if (r) {
@@ -40,7 +40,8 @@ main(int argc, char *argv[])
                 fwrite(((char*)(r))+1, *(unsigned char *)(r), 1, stderr);
                 fprintf(stderr, "\n");
             }
-            fprintf(stderr, "> ");
+        r = PlincExecStr(i, "prompt\n");
+/*            fprintf(stderr, "> ");*/
         }
         
         PlincFreeInterp(i);
