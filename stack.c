@@ -4,9 +4,6 @@
 #include <string.h>
 
 
-static int counttomark(PlincInterp *i);
-
-
 int
 PlincAllocStack(PlincHeap *h, PlincStack *s, size_t size)
 {
@@ -235,8 +232,8 @@ op_countexecstack(PlincInterp *i)
 
 
 
-static int
-counttomark(PlincInterp *i)
+PlincInt
+PlincCountToMark(PlincInterp *i)
 {
     int j;
 
@@ -259,7 +256,7 @@ op_counttomark(PlincInterp *i)
     } else {
         int j;
 
-        j = counttomark(i);
+        j = PlincCountToMark(i);
         if (j < 0) {
             return i->unmatchedmark;
         } else {
@@ -282,7 +279,7 @@ op_cleartomark(PlincInterp *i)
 {
     int j;
 
-    j = counttomark(i);
+    j = PlincCountToMark(i);
     if (j < 0) {
         return i->unmatchedmark;
     } else {
