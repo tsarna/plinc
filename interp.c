@@ -1,5 +1,3 @@
-/* $Endicor: interp.c,v 1.25 1999/01/27 23:36:25 tsarna Exp $ */
-
 #include <plinc/interp.h>
 
 #include <stdlib.h>
@@ -161,7 +159,7 @@ PlincInitVals(PlincInterp *i)
 
     DEFDICT(systemdict, 100);
     PLINC_PUSH(i->DictStack, v);
-    i->DictStack.MinLen = 1;
+    i->DictStack.MinLen = 2; /* next dict pushed will be unpoppable! */
 
     DEFDICT(errordict, 50);
 
