@@ -93,9 +93,7 @@ str_unread(PlincFile *f, int c)
 {
     PlincStrFile *sf = (PlincStrFile *)f;
 
-    if (sf->Cur > 0) {
-        sf->Str[--(sf->Cur)] = c;
-        
+    if ((sf->Cur > 0) && (sf->Str[--(sf->Cur)] == c)) {
         return 0;
     } else {
         return PLINC_IOERR;
