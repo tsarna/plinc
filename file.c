@@ -28,8 +28,7 @@ op_file(PlincInterp *i)
         v1 = &PLINC_OPTOPDOWN(i, 1);
         v2 = &PLINC_OPTOPDOWN(i, 0);
 
-        if ((PLINC_TYPE(*v1) != PLINC_TYPE_STRING) 
-        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+        if (!PLINC_IS_STRING(*v1) || !PLINC_IS_STRING(*v2)) {
             return i->typecheck;
         } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_READ(*v2)) {
             return i->invalidaccess;
@@ -257,6 +256,9 @@ op_write(PlincInterp *i)
             c = PlincWrite(f, v2->Val.Int);
             if (c == PLINC_IOERR) {
                 return i->ioerror;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
             }
         }
     }
@@ -279,16 +281,14 @@ op_writestring(PlincInterp *i)
         v1 = &PLINC_OPTOPDOWN(i, 1);
         v2 = &PLINC_OPTOPDOWN(i, 0);
         
-        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE)
-        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+        if (!PLINC_IS_FILE(*v1) || !PLINC_IS_STRING(*v2)) {
             return i->typecheck;
         } else if ((!PLINC_CAN_WRITE(*v1)) || (!PLINC_CAN_READ(*v2))) {
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
             c = PlincWriteString(f, v2->Val.Ptr, PLINC_SIZE(*v2));
-
-            if (c == PLINC_IOERR) {
+            if ((c == PLINC_IOERR) || (c < PLINC_SIZE(*v2))) {
                 return i->ioerror;
             }
 
