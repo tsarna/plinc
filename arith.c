@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.7 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: arith.c,v 1.8 1999/01/25 18:03:54 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -6,6 +6,7 @@
 
 #ifdef WITH_REAL
 #include <math.h>
+#include <plinc/fpmath.h>
 #endif
 
 
@@ -63,23 +64,23 @@ op_mod(PlincInterp *i)
 static void *
 addsub(PlincInterp *i, int add)
 {
-    PlincVal *v1, *v2, v;
+    PlincVal v1, v2, v;
     int t1, t2;
 
     if (!PLINC_OPSTACKHAS(i, 2)) {
         return i->stackunderflow;
     } else {
-        v1 = &PLINC_OPTOPDOWN(i, 1);
-        v2 = &PLINC_OPTOPDOWN(i, 0);
+        v1 = PLINC_OPTOPDOWN(i, 1);
+        v2 = PLINC_OPTOPDOWN(i, 0);
 
-        t1 = PLINC_TYPE(*v1);
-        t2 = PLINC_TYPE(*v2);
+        t1 = PLINC_TYPE(v1);
+        t2 = PLINC_TYPE(v2);
 
         if ((t1 == PLINC_TYPE_INT) && (t2 == PLINC_TYPE_INT)) {
             int x, y, a, b;
             
-            a = v1->Val.Int;
-            b = v2->Val.Int;
+            a = v1.Val.Int;
+            b = v2.Val.Int;
             x = a + b;
             y = a - b;
             
@@ -88,8 +89,8 @@ addsub(PlincInterp *i, int add)
 #ifdef WITH_REAL
                 /* it would overflow, so convert to reals */
 
-                v1->Val.Real = (float)(v1->Val.Int);
-                v2->Val.Real = (float)(v2->Val.Int);
+                v1.Val.Real = (float)(v1.Val.Int);
+                v2.Val.Real = (float)(v2.Val.Int);
 
                 t1 = t2 = PLINC_TYPE_REAL;
 #else
@@ -109,30 +110,37 @@ addsub(PlincInterp *i, int add)
         
 #ifdef WITH_REAL
         if ((t1 == PLINC_TYPE_INT) && (t2 == PLINC_TYPE_REAL)) {
-                v1->Val.Real = (float)(v1->Val.Int);
+                v1.Val.Real = (float)(v1.Val.Int);
 
                 t1 = PLINC_TYPE_REAL;
         }
 
         if ((t1 == PLINC_TYPE_REAL) && (t2 == PLINC_TYPE_INT)) {
-                v2->Val.Real = (float)(v2->Val.Int);
+                v2.Val.Real = (float)(v2.Val.Int);
 
                 t2 = PLINC_TYPE_REAL;
         }
 
         if ((t1 == PLINC_TYPE_REAL) && (t2 == PLINC_TYPE_REAL)) {
             v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_REAL;
+
+            PLINC_BEGINFP();
+            
             if (add) {
-                v.Val.Real = v1->Val.Real + v2->Val.Real;
+                v.Val.Real = v1.Val.Real + v2.Val.Real;
             } else {
-                v.Val.Real = v1->Val.Real - v2->Val.Real;
+                v.Val.Real = v1.Val.Real - v2.Val.Real;
             }
 
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
-            PLINC_OPPUSH(i, v);
+            if (PLINC_ENDFP(v.Val.Real)) {
+                return i->rangecheck;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+                PLINC_OPPUSH(i, v);
             
-            return NULL;
+                return NULL;
+            }
         }
 #endif
 
@@ -162,6 +170,9 @@ static void *
 op_abs(PlincInterp *i)
 {
     PlincVal *v;
+#ifdef WITH_REAL
+    float x;
+#endif
 
     if (!PLINC_OPSTACKHAS(i, 1)) {
         return i->stackunderflow;
@@ -174,7 +185,15 @@ op_abs(PlincInterp *i)
             }
 #ifdef WITH_REAL
         } else if (PLINC_TYPE(*v) == PLINC_TYPE_REAL) {
-            v->Val.Real = fabsf(v->Val.Real);
+            PLINC_BEGINFP();
+            
+            x = fabsf(v->Val.Real);
+            
+            if (PLINC_ENDFP(v->Val.Real)) {
+                return i->rangecheck;
+            } else {
+                v->Val.Real = x;
+            }
 #endif
         } else {
             return i->typecheck;
@@ -200,7 +219,17 @@ op_neg(PlincInterp *i)
             v->Val.Int = -(v->Val.Int);
 #ifdef WITH_REAL
         } else if (PLINC_TYPE(*v) == PLINC_TYPE_REAL) {
-            v->Val.Real = -(v->Val.Real);
+            float x;
+            
+            PLINC_BEGINFP();
+            
+            x = -(v->Val.Real);
+            
+            if (PLINC_ENDFP(x)) {
+                return i->rangecheck;
+            } else {
+                v->Val.Real = x;
+            }
 #endif
         } else {
             return i->typecheck;

@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.19 1999/01/25 04:35:58 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.20 1999/01/25 18:03:54 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -68,7 +68,7 @@ struct _PlincInterp {
     void           *invalidexit;
 
     void           *limitcheck;
-
+    void           *nocurrentpoint;
     void           *rangecheck;
     void           *stackunderflow;
     void           *stackoverflow;
@@ -124,6 +124,7 @@ void            PlincInitArithOps(PlincInterp *i);
 void            PlincInitArrayOps(PlincInterp *i);
 void            PlincInitStringOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
+void            PlincInitRealOps(PlincInterp *i);
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);
 void            PlincInitLoopOps(PlincInterp *i);

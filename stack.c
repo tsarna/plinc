@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.11 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.12 1999/01/25 04:35:58 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -381,11 +381,58 @@ op_xcheck(PlincInterp *i)
 
 
 
+static void *
+copystack(PlincInterp *i, PlincStack *s)
+{
+    PlincVal *v;
+    int j;
+    
+    if (!PLINC_OPSTACKHAS(i, 0)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_TYPE(*v) != PLINC_TYPE_ARRAY) {
+            return i->typecheck;
+        } else if ((s->Len) > PLINC_SIZE(*v)) {
+            return i->rangecheck;
+        } else {
+            memcpy(v->Val.Ptr, s->Stack, s->Len * sizeof(PlincVal));
+            
+            for (j = 0; j < s->Len; j++) {
+                PLINC_INCREF_VAL(s->Stack[j]);
+            }
+            
+            /* adjust to initial subrange */
+            v->Flags &= ~PLINC_SIZE_MASK;
+            v->Flags |= s->Len;
+            
+            return NULL;
+        }
+    }
+}
+
+
+
+static void *
+op_dictstack(PlincInterp *i)
+{
+    return copystack(i, &(i->DictStack));
+}
+
+
+
+static void *
+op_execstack(PlincInterp *i)
+{
+    return copystack(i, &(i->ExecStack));
+}
+
+
+
 static const PlincOp ops[] = {
     {op_pop,            "pop"},
     {op_exch,           "exch"},
     {op_dup,            "dup"},
-
     {op_index,          "index"},
     {op_roll,           "roll"},
     {op_clear,          "clear"},
@@ -394,6 +441,8 @@ static const PlincOp ops[] = {
     {op_countexecstack, "countexecstack"},
     {op_cleartomark,    "cleartomark"},
     {op_counttomark,    "counttomark"},
+    {op_dictstack,      "dictstack"},
+    {op_execstack,      "execstack"},
     {op_cvlit,          "cvlit"},
     {op_cvx,            "cvx"},
     {op_dot_doexec,     ".doexec"},
