@@ -120,7 +120,7 @@ op_get(PlincInterp *i)
                 return i->invalidaccess;
             } else if (PLINC_TYPE(*v1) != PLINC_TYPE_INT) {
                 return i->typecheck;
-            } else if ((v1->Val.Int < 0) || (v1->Val.Int > PLINC_SIZE(*v0))) {
+            } else if ((v1->Val.Int < 0) || (v1->Val.Int >= PLINC_SIZE(*v0))) {
                 return i->rangecheck;
             } else {
                 v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
