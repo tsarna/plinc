@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.13 1999/01/26 04:27:04 tsarna Exp $ */
+/* $Endicor: type.c,v 1.1 1999/01/27 20:15:36 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -135,6 +135,69 @@ op_dot_doexec(PlincInterp *i)
 
 
 static void *
+op_executeonly(PlincInterp *i)
+{
+    PlincUInt32 t;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        t = PLINC_TYPE(PLINC_OPTOPDOWN(i, 0));
+        switch (t) {
+        case PLINC_TYPE_ARRAY:
+        case PLINC_TYPE_FILE:
+        case PLINC_TYPE_STRING:
+            return setflags(i, PLINC_ATTR_NOREAD | PLINC_ATTR_NOWRITE, 0);
+        
+        default:
+            return i->typecheck;
+        }
+    }
+}
+
+
+
+static void *
+only(PlincInterp *i, PlincUInt32 flags)
+{
+    PlincUInt32 t;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        t = PLINC_TYPE(PLINC_OPTOPDOWN(i, 0));
+        switch (t) {
+        case PLINC_TYPE_ARRAY:
+        case PLINC_TYPE_DICT:
+        case PLINC_TYPE_FILE:
+        case PLINC_TYPE_STRING:
+            return setflags(i, flags, 0);
+        
+        default:
+            return i->typecheck;
+        }
+    }
+}
+
+
+
+static void *
+op_noaccess(PlincInterp *i)
+{
+    return only(i, PLINC_ATTR_NOREAD | PLINC_ATTR_NOWRITE | PLINC_ATTR_NOEXEC);
+}
+
+
+
+static void *
+op_readonly(PlincInterp *i)
+{
+    return only(i, PLINC_ATTR_NOWRITE);
+}
+
+
+
+static void *
 op_xcheck(PlincInterp *i)
 {
     PlincVal v;
@@ -163,6 +226,9 @@ static const PlincOp ops[] = {
     {op_cvx,            "cvx"},
     {op_dot_doexec,     ".doexec"},
     {op_xcheck,         "xcheck"},
+    {op_executeonly,    "executeonly"},
+    {op_noaccess,       "noaccess"},
+    {op_readonly,       "readonly"},
 
     {NULL,          NULL}
 };
