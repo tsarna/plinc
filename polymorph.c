@@ -1,8 +1,51 @@
-/* $Endicor: polymorph.c,v 1.4 1999/01/23 01:11:21 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.5 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+
+
+
+static void *
+op_copy(PlincInterp *i)
+{
+    PlincVal *v0   /*, *v1*/;
+    int j;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v0 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v0) == PLINC_TYPE_INT) {
+            j = v0->Val.Int;
+            if (j < 0) {
+                return i->rangecheck;
+            } else if (j == 0) {
+                PLINC_OPPOP(i);
+            } else if (!PLINC_OPSTACKROOM(i, j - 1)) {
+                return i->stackoverflow;
+            } else if (!PLINC_OPSTACKHAS(i, j + 1)) {
+                return i->stackunderflow;
+            } else {
+                memcpy(&PLINC_OPTOPDOWN(i, 0),
+                       &PLINC_OPTOPDOWN(i, j),
+                       sizeof(PlincVal) * j);
+                
+                i->OpStack.Len += (j - 1);
+                
+                while (j) {
+                    j--;
+                    PLINC_INCREF_VAL(PLINC_OPTOPDOWN(i, j));
+                }
+            }
+            
+            return NULL;
+        } else {
+            return i->typecheck;
+        }
+    }
+}
 
 
 
@@ -102,6 +145,7 @@ op_length(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
+    {op_copy,       "copy"},
     {op_put,        "put"},
     {op_get,        "get"},
     {op_length,     "length"},
