@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.7 1999/01/21 23:34:09 tsarna Exp tsarna $
+# $Endicor: defs.py,v 1.8 1999/01/21 23:34:35 tsarna Exp tsarna $
 
 
 early = """
@@ -43,8 +43,8 @@ systemdict /def {
 
 
 
-%XXX
-/bind {} def
+% define the 'bind' operator
+/bind {} dup exec def
 
 
 
