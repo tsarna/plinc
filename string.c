@@ -14,18 +14,14 @@ struct _PlincString {
 void *
 PlincNewString(PlincHeap *h, PlincUInt size)
 {
-    /* PlincHeapHeader *hh = h->HeapHeader; */
     PlincString *r = NULL;
 
-    r = PlincAllocHeap(h, sizeof(PlincString) + size);
+    r = PlincAllocHeap(h, size);
 
     if (r) {
-        /* PLINC_LINK(r) = hh->Objects;
-        hh->Objects = r;*/
-
         r->Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | size;
 
-        memset(++r, 0, size);
+        memset(r, 0, size);
     }
 
     return r;
