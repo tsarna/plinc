@@ -44,8 +44,7 @@ main(int argc, char *argv[])
         tcsetattr(STDIN_FILENO, TCSANOW, &new);
     
         r = PlincExecStr(i, "prompt\n");
-        while ((l = PlincEditLine(i, buf, sizeof(buf) - 2)) >= 0) {
-            buf[l++] = '\n';
+        while ((l = PlincEditStatement(i, buf, sizeof(buf) - 1)) >= 0) {
             buf[l++] = '\0';
             r = PlincExecStr(i, buf);
             if (r) {
