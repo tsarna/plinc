@@ -1,4 +1,4 @@
-/* $Endicor: relate.c,v 1.3 1999/01/20 20:30:12 tsarna Exp $ */
+/* $Endicor: relate.c,v 1.4 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -139,9 +139,34 @@ op_ne(PlincInterp *i)
 
 
 
+static void *
+op_not(PlincInterp *i)
+{
+    PlincVal *v;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) == PLINC_TYPE_BOOL) {
+            v->Val.Int = !(v->Val.Int);
+        } else if (PLINC_TYPE(*v) == PLINC_TYPE_INT) {
+            v->Val.Int = ~(v->Val.Int);
+        } else {
+            return i->typecheck;
+        }
+        
+        return NULL;
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {op_eq,     "eq"},
     {op_ne,     "ne"},
+    {op_not,    "not"},
 
     {NULL,      NULL}
 };
@@ -153,4 +178,3 @@ PlincInitRelationalOps(PlincInterp *i)
 {
     PlincInitOps(i, ops);
 }
-
