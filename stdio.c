@@ -117,6 +117,7 @@ PlincFileOps stdio_ops = {
     stdio_close,
     stdio_flush,
     stdio_reset,
+    plinc_io_bytesavailable,
     stdio_read,
     stdio_readstring,
     stdio_write,

@@ -12,6 +12,7 @@ struct _PlincFileOps {
     int         (*close)(PlincFile *f);
     int         (*flush)(PlincFile *f);
     int         (*reset)(PlincFile *f);
+    PlincInt    (*bytesavailable)(PlincFile *f);
     int         (*read)(PlincFile *f);
     PlincInt    (*readstring)(PlincFile *f, char *buf, PlincInt l);
     int         (*write)(PlincFile *f, int c);
@@ -27,5 +28,8 @@ struct _PlincFile {
 
 
 extern PlincFileOps plinc_closed_ops;
+
+PlincInt    plinc_io_bytesavailable(PlincFile *f);
+
 
 #endif /* PLINC_IO_H */
