@@ -3,8 +3,21 @@
 #include <plinc/interp.h>
 #include <plinc/fpmath.h>
 
+#include <string.h> /*XXX*/
+#include <stdio.h> /*XXX*/
 #include <stdlib.h>
 #include <math.h>
+
+
+
+int
+PlincFmtReal(float r, char *buf, int len)
+{
+    snprintf(buf, len, "%g", (double)r); /* XXX */
+   
+    return strlen(buf);
+}
+
 
 
 static void *
