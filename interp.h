@@ -47,6 +47,10 @@ struct _PlincInterp {
     /* random number generator */
     unsigned int    RandState;
 
+    /* Misc Flags */
+    PlincUInt       Flags;
+#define PLINC_FLAG_ECHO 0x1                 /* echo in interactive mode */
+
     /* commonly needed names */
     void           *LeftBracket;
     void           *RightBracket;
@@ -183,6 +187,8 @@ int             PlincFmtReal(float r, char *buf, int len);
 char *          PlincFmtRadix(PlincUInt i, PlincInt base, char *buf, int len);
 char *          PlincFmtInt(PlincInt i, char *buf, int len);
 void *          PlincFmtCVS(PlincInterp *i, PlincVal *v, char **buf, int *buflen);
+
+PlincInt        PlincEditLine(PlincInterp *i, char *buf, PlincUInt len);
 
 void           *PlincGo(PlincInterp *i);
 void           *PlincExecStr(PlincInterp *i, const char *s);
