@@ -1,5 +1,3 @@
-/* $Endicor: exec.c,v 1.16 1999/01/27 01:46:41 tsarna Exp $ */
-
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
 #include <string.h>
