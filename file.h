@@ -30,6 +30,7 @@ struct _PlincFile {
 extern PlincFileOps plinc_closed_ops;
 
 PlincInt    plinc_io_bytesavailable(PlincFile *f);
+PlincInt    plinc_io_readstring(PlincFile *f, char *buf, PlincInt l);
 
 
 #endif /* PLINC_IO_H */
