@@ -1,10 +1,12 @@
-/* $Endicor: exec.c,v 1.14 1999/01/21 23:34:09 tsarna Exp $ */
+/* $Endicor: exec.c,v 1.15 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
 
 
 static void *ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv);
+
+static const PlincOp ops[]; /* forward */
 
 
 void
@@ -217,6 +219,93 @@ op_exec(PlincInterp *i)
 
 
 static void *
+op_stop(PlincInterp *i)
+{
+    PlincVal *v, t;
+    int j;
+     
+    for (j = 0; j < i->ExecStack.Len; j++) {
+        v = &PLINC_TOPDOWN(i->ExecStack, j);
+        
+        if (PLINC_TYPE(*v) == PLINC_TYPE_OP) {
+            if (v->Val.Op == &ops[0]) {
+                while (j) {
+                    while (j) {
+                        PLINC_POP(i->ExecStack);
+                        j--;
+                    }
+                        
+                    if (!PLINC_OPSTACKROOM(i, 1)) {
+                        return i->stackoverflow;
+                    } else {
+                        t.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                        t.Val.Int = TRUE;
+                        PLINC_OPPUSH(i, t);
+
+                        return NULL;
+                    }
+                }
+            }
+        }
+    }
+
+    return i->invalidstop;
+}
+
+
+
+static void *
+op_stopped(PlincInterp *i)
+{
+    PlincVal *v, o;
+
+    /* replace top of exec stack (which will be the exec operator)
+       with the value popped off the operator stack */
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+        return i->execstackoverflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+
+        /* force proc to be executed */
+        v->Flags |= PLINC_ATTR_DOEXEC;
+
+        o.Flags = PLINC_TYPE_OP;
+        o.Val.Ptr = (void *)&ops[0];    /*XXX*/
+
+        PLINC_TOPDOWN(i->ExecStack, 0) = o;
+        PLINC_PUSH(i->ExecStack, *v);
+        PLINC_OPPOP(i);
+
+        /* tell main loop not to pop the opstack */
+        return i;
+    }
+}
+
+
+
+static void *
+op_dot_stopped(PlincInterp *i)
+{
+    PlincVal v;
+
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+        v.Val.Int = FALSE;
+
+        PLINC_OPPUSH(i, v);
+
+        return NULL;
+    }
+}
+
+
+
+static void *
 op_if(PlincInterp *i)
 {
     PlincVal *v1, *v2;
@@ -286,11 +375,14 @@ op_ifelse(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
+    {op_dot_stopped,    ".stopped"},    /* XXX must be first */
     {op_rbrace,         "{"},
     {op_dot_decscan,    ".decscan"},
     {op_exec,           "exec"},
     {op_if,             "if"},
     {op_ifelse,         "ifelse"},
+    {op_stop,           "stop"},
+    {op_stopped,        "stopped"},
 
     {NULL,              NULL}
 };

@@ -1,4 +1,4 @@
-/* $Endicor: print.c,v 1.5 1999/01/22 18:59:10 tsarna Exp $ */
+/* $Endicor: print.c,v 1.6 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -103,7 +103,7 @@ PlincReprVal(PlincInterp *i, PlincVal *v)
         break;
         
     case PLINC_TYPE_OP:
-        fprintf(stderr, "-%s-", v->Val.Op->Name);
+        fprintf(stderr, "--%s--", v->Val.Op->Name);
         break;
         
     case PLINC_TYPE_FILE:
