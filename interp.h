@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.7 1999/01/17 22:29:59 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.8 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -34,6 +34,7 @@ struct _PlincInterp {
     PlincStack      ExecStack;
 
     int             ScanLevel;
+    int             SaveLevel;
     
     /* commonly needed names */
     void           *LeftBracket;
@@ -67,7 +68,7 @@ struct _PlincInterp {
 
     void           *undefinedresult;
     void           *unmatchedmark;
-
+    void           *unregistered;
     void           *VMerror;
 
     /* misc state */
@@ -104,9 +105,12 @@ void            PlincInitArithOps(PlincInterp *i);
 void            PlincInitArrayOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
 void            PlincInitRelationalOps(PlincInterp *i);
+void            PlincInitControlOps(PlincInterp *i);
+void            PlincInitVMOps(PlincInterp *i);
 
 int             PlincEqual(PlincVal *v1, PlincVal *v2);
 void           *PlincReprVal(PlincInterp *i, PlincVal *v);
+void            PlincClearN(PlincInterp *i, int n);
 
 void           *PlincGo(PlincInterp *i);
 void           *PlincExecStr(PlincInterp *i, char *s);

@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.5 1999/01/17 22:29:59 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.6 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
@@ -172,10 +172,70 @@ op_maxlength(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
-    {"maxlength",   op_maxlength},
+static void *
+op_currentdict(PlincInterp *i)
+{
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        PLINC_OPPUSH(i, PLINC_TOPDOWN(i->DictStack, 0));
 
-    {NULL,          NULL}
+        return NULL;
+    }
+}
+
+
+
+static void *
+op_countdictstack(PlincInterp *i)
+{
+    PlincVal v;
+    
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+        v.Val.Int = i->DictStack.Len;
+
+        PLINC_OPPUSH(i, v);
+
+        return NULL;
+    }
+}
+
+
+
+static void *
+op_load(PlincInterp *i)
+{
+    PlincVal v;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        r = PlincLoadDict(i, &PLINC_OPTOPDOWN(i, 0), &v);
+        if (r) {
+            return r;
+        } else {
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, v);
+            
+            return NULL;
+        }
+    }
+}
+
+
+static PlincOp ops[] = {
+    {"maxlength",       op_maxlength},
+
+    {"load",            op_load},
+
+    {"currentdict",     op_currentdict},
+    {"countdictstack",  op_countdictstack},
+
+    {NULL,              NULL}
 };
 
 

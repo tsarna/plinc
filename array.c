@@ -1,4 +1,4 @@
-/* $Endicor: array.c,v 1.2 1999/01/14 01:26:00 tsarna Exp $ */
+/* $Endicor: array.c,v 1.3 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 
 #include <plinc/array.h>
@@ -74,8 +74,47 @@ op_array(PlincInterp *i)
 
 
 
+static void *
+op_astore(PlincInterp *i)
+{
+    PlincVal *v;
+    int l;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_TYPE(*v) != PLINC_TYPE_ARRAY) {
+            return i->typecheck;
+        } else {
+            if (!PLINC_CAN_WRITE(*v)) {
+                return i->invalidaccess;
+            } else {
+                l = PLINC_SIZE(*v);
+                if (!PLINC_OPSTACKHAS(i, l + 1)) {
+                    return i->stackunderflow;
+                } else if (l) {
+                    /* XXX COW the array here... */
+
+                    memcpy(v->Val.Ptr, &PLINC_OPTOPDOWN(i, l),
+                        sizeof(PlincVal) * l);
+
+                    PlincClearN(i, l + 1);
+                    PLINC_OPPUSH(i, *v);
+                }
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+
+
 static PlincOp ops[] = {
     {"array",       op_array},
+
+    {"astore",      op_astore},
 
     {NULL,          NULL}
 };
@@ -87,4 +126,3 @@ PlincInitArrayOps(PlincInterp *i)
 {
     PlincInitOps(i, ops);
 }
-

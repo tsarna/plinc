@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.4 1999/01/17 21:04:54 tsarna Exp $ */
+/* $Endicor: exec.c,v 1.5 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -41,7 +41,9 @@ pres(i);
                 return i->invalidaccess;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_OP) {
                 r = v->Val.Op->Func(i);
-                if (r) {
+                if (r == i) {
+                    continue;
+                } else if (r) {
                     return r;
                 } else {
                     PLINC_POP(i->ExecStack);
@@ -54,6 +56,9 @@ pres(i);
                 } else {
                     PLINC_INCREF_VAL(nv);
                     *v = nv;
+                    
+                    /* force procs to be run rather than pushed */
+                    v->Flags |= PLINC_ATTR_DOEXEC;
                     
                     continue;
                 }
@@ -88,19 +93,19 @@ static void *
 ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
 {
     if (r == i) {
-        if ((PLINC_TYPE(*nv) == PLINC_TYPE_ARRAY)
-        || !PLINC_EXEC(*nv)) {
-            if (!PLINC_OPSTACKROOM(i, 1)) {
-                return i->stackoverflow;
-            }
-        
-            PLINC_OPPUSH(i, *nv);
-        } else {
+        if (PLINC_EXEC(*nv) 
+        && (PLINC_DOEXEC(*v) || (PLINC_TYPE(*v) != PLINC_TYPE_ARRAY))) {
             if (!PLINC_STACKROOM(i->ExecStack, 1)) {
                 return i->execstackoverflow;
             }
                     
             PLINC_PUSH(i->ExecStack, *nv);
+        } else {
+            if (!PLINC_OPSTACKROOM(i, 1)) {
+                return i->stackoverflow;
+            }
+        
+            PLINC_OPPUSH(i, *nv);
         }        
 
         if (!PLINC_SIZE(*v)) {
@@ -130,4 +135,47 @@ PlincExecStr(PlincInterp *i, char *s)
     PLINC_PUSH(i->ExecStack, v);
     
     return PlincGo(i);
+}
+
+
+
+static void *
+op_exec(PlincInterp *i)
+{
+    PlincVal *v;
+
+    /* replace top of exec stack (which will be the exec operator)
+       with the value popped off the operator stack */
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        PLINC_INCREF_VAL(*v);
+
+        /* force proc to be executed */
+        v->Flags |= PLINC_ATTR_DOEXEC;
+
+        PLINC_TOPDOWN(i->ExecStack, 0) = *v;
+        PLINC_OPPOP(i);
+
+        /* tell main loop not to pop the opstack */
+        return i;
+    }
+}
+
+
+
+static PlincOp ops[] = {
+    {"exec",        op_exec},
+
+    {NULL,          NULL}
+};
+
+
+
+void
+PlincInitControlOps(PlincInterp *i)
+{
+    PlincInitOps(i, ops);
 }

@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.7 1999/01/17 22:29:59 tsarna Exp $ */
+/* $Endicor: interp.c,v 1.8 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -28,7 +28,7 @@ PlincNewInterp(size_t heapsize)
             }
         }
         if (ok) {
-            i->ScanLevel = 0;
+            i->ScanLevel = i->SaveLevel = 0;
             i->GotInterrupt = FALSE;
             
             PlincInitErrorNames(i);
@@ -39,6 +39,8 @@ PlincNewInterp(size_t heapsize)
             PlincInitArrayOps(i);
             PlincInitDictOps(i);
             PlincInitRelationalOps(i);
+            PlincInitControlOps(i);
+            PlincInitVMOps(i);
         }
                     
     }
@@ -94,7 +96,7 @@ PlincInitErrorNames(PlincInterp *i)
 
     DEFERR(undefinedresult);
     DEFERR(unmatchedmark);
-
+    DEFERR(unregistered);
     DEFERR(VMerror);
 }
 

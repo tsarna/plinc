@@ -1,11 +1,10 @@
-/* $Endicor: stack.c,v 1.5 1999/01/17 22:29:59 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.6 1999/01/18 00:54:54 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
 
 
-static void clear_n(PlincInterp *i, int n);
 static int counttomark(PlincInterp *i);
 
 
@@ -115,8 +114,8 @@ op_index(PlincInterp *i)
 
 
 
-static void
-clear_n(PlincInterp *i, int n)
+void
+PlincClearN(PlincInterp *i, int n)
 {
     int j = n;
     
@@ -134,7 +133,7 @@ clear_n(PlincInterp *i, int n)
 static void *
 op_clear(PlincInterp *i)
 {
-    clear_n(i, i->OpStack.Len);
+    PlincClearN(i, i->OpStack.Len);
 
     return NULL;
 }
@@ -211,7 +210,7 @@ op_cleartomark(PlincInterp *i)
     if (j < 0) {
         return i->unmatchedmark;
     } else {
-        clear_n(i, j+1);
+        PlincClearN(i, j+1);
 
         return NULL;
     }
