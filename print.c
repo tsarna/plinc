@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.3 1999/01/17 05:14:05 tsarna Exp tsarna $ */
+/* $Endicor: print.c,v 1.1 1999/01/17 21:04:54 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -7,6 +7,7 @@
 void *
 PlincReprVal(PlincInterp *i, PlincVal *v)
 {
+    PlincDict *d;
     char *p;
     int j;
     
@@ -59,7 +60,25 @@ PlincReprVal(PlincInterp *i, PlincVal *v)
         break;
         
     case PLINC_TYPE_DICT:
-        /*XXX*/
+        fprintf(stderr, "<< ");
+        d = v->Val.Ptr;
+        for (j = 0; j < d->MaxLen; j++) {
+            if (!PLINC_IS_NULL(d->Vals[j].Key)) {
+                if (PLINC_TYPE(d->Vals[j].Key) == PLINC_TYPE_DICT) {
+                    fputs("-dict-", stderr);
+                } else {
+                    PlincReprVal(i, &(d->Vals[j].Key));
+                }
+                fputc(' ', stderr);
+                if (PLINC_TYPE(d->Vals[j].Val) == PLINC_TYPE_DICT) {
+                    fputs("-dict-", stderr);
+                } else {
+                    PlincReprVal(i, &(d->Vals[j].Val));
+                }
+                fputc(' ', stderr);
+            }
+        }
+        fprintf(stderr, ">>");
         break;
         
     case PLINC_TYPE_OP:
