@@ -5,6 +5,15 @@
 #include <string.h>
 
 
+#ifndef PLINC_HEX_BUFSIZE
+#define PLINC_HEX_BUFSIZE   32
+#endif
+#define HEXCHUNK ((PLINC_HEX_BUFSIZE)/2)
+
+static char hexdigits[] = "0123456789abcdef";
+
+
+
 static void *
 op_file(PlincInterp *i)
 {
@@ -292,6 +301,67 @@ op_writestring(PlincInterp *i)
 
 
 static void *
+op_writehexstring(PlincInterp *i)
+{
+    char buf[PLINC_HEX_BUFSIZE], *p, *s;
+    PlincVal *v1, *v2;
+    PlincFile *f;
+    int c, l, h;
+     
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE)
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if ((!PLINC_CAN_WRITE(*v1)) || (!PLINC_CAN_READ(*v2))) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v1->Val.Ptr);
+            l = PLINC_SIZE(*v2);
+            s = v2->Val.Ptr;
+            
+            while (l >= HEXCHUNK) {
+                h = HEXCHUNK; p = buf;
+                while (h) {
+                    *p++ = hexdigits[*s >> 4];
+                    *p++ = hexdigits[(*s++) & 0xF];
+                    h--;
+                }
+                
+                c = f->Ops->writestring(f, buf, PLINC_HEX_BUFSIZE);
+                if (c == PLINC_IOERR) {
+                    return i->ioerror;
+                }
+                l -= HEXCHUNK;
+            }
+
+            h = 0; p = buf;
+            while (l) {
+                *p++ = hexdigits[*s >> 4];
+                *p++ = hexdigits[(*s++) & 0xF];
+                h++; l--;
+            }
+                
+            c = f->Ops->writestring(f, buf, h*2);
+            if (c == PLINC_IOERR) {
+                return i->ioerror;
+            }
+
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_bytesavailable(PlincInterp *i)
 {
     PlincVal *v, nv;
@@ -464,6 +534,7 @@ static const PlincOp ops[] = {
     {op_readline,       "readline"},
     {op_write,          "write"},
     {op_writestring,    "writestring"},
+    {op_writehexstring, "writehexstring"},
     {op_bytesavailable, "bytesavailable"},
     {op_flush,          "flush"},
     {op_flushfile,      "flushfile"},
