@@ -158,7 +158,7 @@ PlincInitVals(PlincInterp *i)
     i->x = d; v.Flags = d->Flags; v.Val.Ptr = d; \
     PlincPutDictName(i, i->systemdict, name, &v);
 
-    DEFDICT(systemdict, 100);
+    DEFDICT(systemdict, 128);
     PLINC_PUSH(i->DictStack, v);
     i->DictStack.MinLen = 2; /* next dict pushed will be unpoppable! */
 
