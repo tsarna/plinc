@@ -1,4 +1,4 @@
-/* $Endicor: array.c,v 1.3 1999/01/18 00:54:54 tsarna Exp tsarna $ */
+/* $Endicor: array.c,v 1.4 1999/01/18 05:13:40 tsarna Exp $ */
 
 
 #include <plinc/array.h>
@@ -36,6 +36,29 @@ PlincNewArray(PlincHeap *h, PlincUInt size)
 
 
 
+void *
+PlincArrayVal(PlincInterp *i, PlincVal *a, PlincVal *ret)
+{
+    void *r = NULL;
+    PlincVal *v;
+    int s;
+    
+    if (!PLINC_CAN_EXEC(*a)) {
+        r = i->invalidaccess;
+    } else if ((s = PLINC_SIZE(*a))) {
+        r = i;
+        v = (PlincVal *)(a->Val.Ptr);
+        *ret = *v;
+        a->Val.Ptr = ++v;
+        a->Flags &= ~PLINC_SIZE_MASK;
+        a->Flags |= (s - 1);
+    }
+
+    return r;
+}
+
+
+                
 static void *
 op_array(PlincInterp *i)
 {

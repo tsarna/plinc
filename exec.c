@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.6 1999/01/18 05:13:40 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.7 1999/01/18 21:16:20 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -63,6 +63,11 @@ pres(i);
                     continue;
                 }
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_ARRAY) {
+                r = PlincArrayVal(i, v, &nv);
+                r = ValFromComp(i, r, v, &nv);
+                if (r) {
+                    return r;
+                }
                 continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_STRING) {
                 r = PlincTokenVal(i, v, &nv);
@@ -93,6 +98,12 @@ static void *
 ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
 {
     if (r == i) {
+        if (!PLINC_SIZE(*v)) {
+            /* if we exhausted the string/array, pop it off */ 
+            PLINC_POP(i->ExecStack);
+        }
+
+        /* XXX scanlevel */
         if (PLINC_EXEC(*nv) 
         && (PLINC_DOEXEC(*v) || (PLINC_TYPE(*v) != PLINC_TYPE_ARRAY))) {
             if (!PLINC_STACKROOM(i->ExecStack, 1)) {
@@ -107,11 +118,6 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
         
             PLINC_OPPUSH(i, *nv);
         }        
-
-        if (!PLINC_SIZE(*v)) {
-            /* if we exhausted the string/array, pop it off */ 
-            PLINC_POP(i->ExecStack);
-        }
     } else if (r) {
         return r;
     } else {

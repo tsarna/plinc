@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.7 1999/01/18 05:13:40 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.8 1999/01/18 21:16:20 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
@@ -27,6 +27,7 @@ PlincNewDict(PlincHeap *h, PlincUInt size)
 
         for (i = 0; i < size; i++) {
             r->Vals[i].Key.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
+            r->Vals[i].Val.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
         }
     }
 
@@ -59,19 +60,25 @@ PlincHashVal(PlincVal *v)
 
 
 void *
-PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
+PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
 {
     void *r = NULL;
     PlincUInt j;
 
     if (!PLINC_CAN_WRITE(*d)) {
         r = i->invalidaccess;
-    } else if (d->Len < d->MaxLen) {
+    } else if (d->Len >= d->MaxLen) {
+        r = i->dictfull;
+    } else {
         d->Len++;
 
-        j = PlincHash((PlincUInt)key) % (d->MaxLen);
+        /* XXX convert strings to names here */
+        
+        j = PlincHashVal(key) % (d->MaxLen);
 
-        while (!PLINC_IS_NULL(d->Vals[j].Key)) {
+        while (!PLINC_IS_NULL(d->Vals[j].Key) && 
+            !PlincEqual(&(d->Vals[j].Key), key)) {
+
             j++;
             
             if (j >= d->MaxLen) {
@@ -79,14 +86,30 @@ PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
             }
         }
 
-        d->Vals[j].Key.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
-        d->Vals[j].Key.Val.Ptr = key;
+        if (PLINC_IS_NULL(d->Vals[j].Key)) {
+            PLINC_INCREF_VAL(*key);
+            d->Vals[j].Key = *key;
+        }
+        
+        PLINC_INCREF_VAL(*val);
+        PLINC_DECREF_VAL(d->Vals[j].Val);
         d->Vals[j].Val = *val;
-    } else {
-        r = i->dictfull;
     }
     
     return r;
+}
+
+
+
+void *
+PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
+{
+    PlincVal k;
+    
+    k.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
+    k.Val.Ptr = key;
+    
+    return PlincPutDict(i, d, &k, val);
 }
 
 
@@ -100,6 +123,8 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
     if (!PLINC_CAN_READ(*d)) {
         r = i->invalidaccess;
     } else {
+        /* XXX convert strng key to literal name */
+
         oj = j = PlincHashVal(key) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key)) {
@@ -253,7 +278,10 @@ op_begin(PlincInterp *i)
             d = v->Val.Ptr;
 
             if (PLINC_DOEXEC(*d)) {
-fprintf(stderr, "YO!");
+                /* fix flags and lock dictstack */
+                d->Flags &= ~PLINC_ATTR_DOEXEC;
+                d->Flags |= PLINC_ATTR_LIT;
+                
                 i->DictStack.MinLen = i->DictStack.Len;
             }
         
