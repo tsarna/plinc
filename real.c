@@ -13,7 +13,7 @@
 int
 PlincFmtReal(float r, char *buf, int len)
 {
-    snprintf(buf, len, "%g", (double)r); /* XXX */
+    snprintf(buf, len, "%#g", (double)r); /* XXX */
    
     return strlen(buf);
 }
