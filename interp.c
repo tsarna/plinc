@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.17 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: interp.c,v 1.18 1999/01/25 04:35:58 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -32,6 +32,7 @@ PlincNewInterp(size_t heapsize)
         }
         if (ok) {
             i->ScanLevel = i->SaveLevel = 0;
+            i->State = i->Seed = 1;
             i->GotInterrupt = FALSE;
             
             PlincInitErrorNames(i);

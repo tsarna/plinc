@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.18 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.19 1999/01/25 04:35:58 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -41,6 +41,10 @@ struct _PlincInterp {
     int             ScanLevel;
     int             SaveLevel;
     
+    /* random number generator */
+    unsigned int    Seed;
+    unsigned int    State;
+
     /* commonly needed names */
     void           *LeftBracket;
     void           *RightBracket;
