@@ -1,7 +1,10 @@
+#include <plinc/interp.h>
+#include <plinc/file.h>
+
 #include <plinc/token.h>
 
 #include <stdlib.h>
-#include <stdio.h> /*XXX*/
+#include <stdio.h>
 
 
 #define WS  0x8000      /* Whitespace */
@@ -360,3 +363,291 @@ StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
         return i;
     }
 }
+
+
+
+/****************************************/
+
+
+
+void *
+PlincGetOther(PlincInterp *i, PlincFile *f, PlincVal *v, int c, int lit)
+{
+    return NULL;
+}
+
+
+
+void *
+PlincGetString(PlincInterp *i, PlincFile *f, PlincVal *v,
+void (*initfunc)(PlincDecodeFile *, PlincFile *, PlincUInt))
+{
+    PlincDecodeFile df;
+    PlincUInt len, l;
+    char *p;
+    
+    initfunc(&df, f, PLINC_DECF_WITHEOD);
+    p = PlincBorrowMemory(i->Heap, &len);
+    if (!p) {
+        return i->VMerror;
+    }
+    
+    l = PlincReadString((PlincFile *)&df, p, len);
+    if (l == PLINC_IOERR) {
+        return i->ioerror;
+    } else if (l == PLINC_EOF) {
+        return i->syntaxerror;
+    } else if (l == len) {
+        /* probably overfilled memory */
+        PlincBorrowAbort(i->Heap, p, len);
+        return i->VMerror;
+    } else {
+        p = PlincBorrowFinalize(i->Heap, p, len, l);
+        if (!p) {
+            return i->VMerror;
+        }
+        
+        v->Flags = PLINC_TYPE_STRING | PLINC_ATTR_LIT | l;
+        v->Val.Ptr = p;
+        return NULL;
+    }
+}
+
+
+
+void *
+PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
+{
+    PlincVal v;
+    int c, depth = 0;
+    void *r = NULL;
+    
+    do {
+        c = PlincRead(f);
+        switch (c) {
+        case PLINC_EOF:
+            r = i;
+            goto done;
+
+        case PLINC_IOERR:
+            r = i->ioerror;
+            goto done;
+                        
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\n':
+            continue;
+
+        case '[':
+            v.Flags = PLINC_TYPE_NAME;
+            v.Val.Ptr = i->LeftBracket;
+            goto value;
+
+        case ']':
+            v.Flags = PLINC_TYPE_NAME;
+            v.Val.Ptr = i->RightBracket;
+            goto value;
+         
+        case '<':
+            c = PlincRead(f);
+            if (c == '<') {
+                v.Flags = PLINC_TYPE_NAME;
+                v.Val.Ptr = i->LeftAngleAngle;
+                goto value;
+#if 0
+            } else if (c == '~') {
+                XXX
+#endif
+            } else {
+                c = PlincUnRead(f, c);
+                if (c) {
+                    r = i->ioerror;
+                    goto done;
+                }
+                r = PlincGetString(i, f, &v, PlincInitHexDecode);
+                if (r) {
+                    goto done;
+                }
+                goto value;
+            }
+            
+        case '>':
+            c = PlincRead(f);
+            if (c == PLINC_IOERR) {
+                r = i->ioerror;
+                goto done;
+            } else if (c == PLINC_EOF) {
+                r = i->syntaxerror;
+                goto done;
+            } else if (c == '>') {
+                v.Flags = PLINC_TYPE_NAME;
+                v.Val.Ptr = i->RightAngleAngle;
+                goto value;
+            } else {
+                c = PlincUnRead(f, c);
+                if (c) {
+                    r = i->ioerror;
+                } else {
+                    r = i->syntaxerror;
+                }
+                goto done;
+            }
+            
+        case '(':
+            r = PlincGetString(i, f, &v, PlincInitPStrDecode);
+            if (r) {
+                goto done;
+            }
+            goto value;
+            
+        case ')':
+            r = i->syntaxerror;
+            goto done;
+            
+        case '%':
+            do {
+                c = PlincRead(f);
+                if (c == PLINC_EOF) {
+                    r = i;
+                    goto done;
+                } else if (c == PLINC_IOERR) {
+                    r = i->ioerror;
+                    goto done;
+                }
+            } while ((c != '\r') && (c != '\n'));
+	    continue;
+	
+        case '/':
+            c = PlincRead(f);
+            if (c == PLINC_IOERR) {
+                r = i->ioerror;
+                goto done;
+            } else if (c == '/') {
+                c = PlincRead(f);
+                if (c == PLINC_IOERR) {
+                    r = i->ioerror;
+                    goto done;
+                } else {
+                    r = PlincGetOther(i, f, &v, c, 2);
+                    if (r) {
+                        goto done;
+                    } else {
+                        goto value;
+                    }
+                }
+            } else {
+                r = PlincGetOther(i, f, &v, c, 1);
+                if (r) {
+                    goto done;
+                } else {
+                    goto value;
+                }
+            }
+            
+        default:
+            r = PlincGetOther(i, f, &v, c, 0);
+            if (r) {
+                goto done;
+            } else {
+                goto value;
+            }
+        }
+
+        goto next;
+        
+    value:
+        if (depth) {
+            if (!PLINC_OPSTACKROOM(i, 1)) {
+                return i->stackoverflow;
+            } else {
+                PLINC_OPPUSH(i, v);
+            }
+            continue;
+        } else {
+            *val = v;
+            break;
+        }
+        
+    done:
+        /* unwind if depth */
+        return r;
+    
+    next:
+        ;
+       
+    } while (1);
+
+
+    return NULL; /* XXX */
+}
+
+
+
+static void *
+op_token(PlincInterp *i)
+{
+    PlincVal v, *vs;
+    PlincStrFile sf;
+    PlincFile *f;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else if (!PLINC_OPSTACKROOM(i, 3)) {
+        return i->stackoverflow;
+    } else {
+        vs = &PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_IS_FILE(*vs)) {
+            f = (PlincFile *)(vs->Val.Ptr);
+        } else if (PLINC_IS_STRING(*vs)) {
+            PlincInitStrFile(&sf, vs);
+            f = (PlincFile *)(void *)&sf;
+        } else {
+            return i->typecheck;
+        }
+            
+        r = PlincGetToken(i, f, &v);
+        if (r == i) {
+            PLINC_OPPOP(i);
+            v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+            v.Val.Int = FALSE;
+            PLINC_OPPUSH(i, v);
+            
+            return NULL;
+        } else if (r) {
+            return r;
+        } else if (PLINC_IS_FILE(*vs)) {
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, v);
+        } else {
+            vs->Val.Ptr = (char *)(vs->Val.Ptr) + sf.Cur;
+            PLINC_SET_SIZE(*vs, PLINC_SIZE(*vs) - sf.Cur);
+
+            PLINC_OPPUSH(i, v);
+        }
+
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+        v.Val.Int = TRUE;
+        PLINC_OPPUSH(i, v);
+    }
+
+    return NULL;
+}
+
+
+
+static const PlincOp ops[] = {
+    {op_token,      "token"},
+
+    {NULL,          NULL}
+};
+
+
+
+void
+PlincInitTokenOps(PlincInterp *i)
+{
+    PlincInitOps(i, ops);
+}
+
