@@ -375,27 +375,6 @@ op_eqeqone(PlincInterp *i)
 
 
 static void *
-op_equalsequals(PlincInterp *i)
-{
-    void *r;
-    
-    if (!PLINC_OPSTACKHAS(i, 1)) {
-        return i->stackunderflow;
-    } else {
-        r = PlincReprVal(i, &PLINC_OPTOPDOWN(i, 0));
-        fprintf(stderr, "\n");
-
-        if (!r) {
-            PLINC_OPPOP(i);
-        }
-        
-        return r;
-    }
-}
-
-
-
-static void *
 op_pstack(PlincInterp *i)
 {
     void *r = NULL;
@@ -415,7 +394,6 @@ static const PlincOp ops[] = {
     {op_equals,             "="},
     {op_equalsonly,         "=only"},
     {op_eqeqone,            "==one"},
-    {op_equalsequals,       "=="},
     {op_pstack,             "pstack"},
     
     {NULL,                  NULL}
