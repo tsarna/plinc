@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.10 1999/01/22 18:59:10 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.11 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -204,7 +204,7 @@ op_clear(PlincInterp *i)
 
 
 static void *
-op_count(PlincInterp *i)
+countstack(PlincInterp *i, PlincStack *s)
 {
     if (!PLINC_OPSTACKROOM(i, 1)) {
         return i->stackoverflow;
@@ -212,12 +212,36 @@ op_count(PlincInterp *i)
         PlincVal v;
 
         v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-        v.Val.Int = i->OpStack.Len;
+        v.Val.Int = s->Len;
 
         PLINC_OPPUSH(i, v);
 
         return NULL;
     }
+}
+
+
+
+static void *
+op_count(PlincInterp *i)
+{
+    return countstack(i, &(i->OpStack));
+}
+
+
+
+static void *
+op_countdictstack(PlincInterp *i)
+{
+    return countstack(i, &(i->DictStack));
+}
+
+
+
+static void *
+op_countexecstack(PlincInterp *i)
+{
+    return countstack(i, &(i->ExecStack));
 }
 
 
@@ -366,6 +390,8 @@ static const PlincOp ops[] = {
     {op_roll,           "roll"},
     {op_clear,          "clear"},
     {op_count,          "count"},
+    {op_countdictstack, "countdictstack"},
+    {op_countexecstack, "countexecstack"},
     {op_cleartomark,    "cleartomark"},
     {op_counttomark,    "counttomark"},
     {op_cvlit,          "cvlit"},

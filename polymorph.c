@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.5 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.6 1999/01/24 04:31:00 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -50,6 +50,59 @@ op_copy(PlincInterp *i)
 
 
 static void *
+op_get(PlincInterp *i)
+{
+    PlincVal *v0, *v1, v;
+    void *r = NULL;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v0 = &PLINC_OPTOPDOWN(i, 1);
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+
+        if (PLINC_TYPE(*v0) == PLINC_TYPE_DICT) {
+            r = PlincGetDict(i, (PlincDict *)(v0->Val.Ptr), v1, &v);
+        } else if (PLINC_TYPE(*v0) == PLINC_TYPE_ARRAY) {
+            if (!PLINC_CAN_READ(*v0)) {
+                return i->invalidaccess;
+            } else if (PLINC_TYPE(*v1) != PLINC_TYPE_INT) {
+                return i->typecheck;
+            } else if ((v1->Val.Int < 0) || (v1->Val.Int > PLINC_SIZE(*v0))) {
+                return i->rangecheck;
+            } else {
+                v = ((PlincVal *)v0->Val.Ptr)[v1->Val.Int];
+                PLINC_INCREF_VAL(v);
+            }
+        } else if (PLINC_TYPE(*v0) == PLINC_TYPE_STRING) {
+            if (!PLINC_CAN_READ(*v0)) {
+                return i->invalidaccess;
+            } else if (PLINC_TYPE(*v1) != PLINC_TYPE_INT) {
+                return i->typecheck;
+            } else if ((v1->Val.Int < 0) || (v1->Val.Int > PLINC_SIZE(*v0))) {
+                return i->rangecheck;
+            } else {
+                v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+                v.Val.Int = ((char *)v0->Val.Ptr)[v1->Val.Int];
+            }
+        } else {
+            return i->typecheck;
+        }
+
+        if (!r) {
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+
+            PLINC_OPPUSH(i, v);
+        }
+        
+        return r;
+    }
+}
+
+
+
+static void *
 op_put(PlincInterp *i)
 {
     PlincVal *v0, *v1, *v2;
@@ -73,38 +126,6 @@ op_put(PlincInterp *i)
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
-        }
-        
-        return r;
-    }
-}
-
-
-
-static void *
-op_get(PlincInterp *i)
-{
-    PlincVal *v0, *v1, v;
-    void *r;
-    
-    if (!PLINC_OPSTACKHAS(i, 2)) {
-        return i->stackunderflow;
-    } else {
-        v0 = &PLINC_OPTOPDOWN(i, 1);
-        v1 = &PLINC_OPTOPDOWN(i, 0);
-        r = i->typecheck;
-
-        if (PLINC_TYPE(*v0) == PLINC_TYPE_DICT) {
-            r = PlincGetDict(i, (PlincDict *)(v0->Val.Ptr), v1, &v);
-        } else {
-            return i->typecheck;
-        }
-
-        if (!r) {
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
-
-            PLINC_OPPUSH(i, v);
         }
         
         return r;
@@ -146,8 +167,8 @@ op_length(PlincInterp *i)
 
 static const PlincOp ops[] = {
     {op_copy,       "copy"},
-    {op_put,        "put"},
     {op_get,        "get"},
+    {op_put,        "put"},
     {op_length,     "length"},
 
     {NULL,          NULL}

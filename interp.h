@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.17 1999/01/22 18:59:10 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.18 1999/01/24 03:47:42 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -69,7 +69,7 @@ struct _PlincInterp {
     void           *stackunderflow;
     void           *stackoverflow;
     void           *syntaxerror;
-
+    void           *timeout;
     void           *typecheck;
     void           *undefined;
     void           *undefinedfilename;
