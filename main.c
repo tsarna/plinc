@@ -1,6 +1,9 @@
 #include <plinc/interp.h>
 #include <plinc/file.h>
+
 #include <stdio.h>
+#include <unistd.h>
+#include <termios.h>
 
 #define HEAPSIZE 65536
 
@@ -9,11 +12,12 @@ extern const PlincFileOps stdio_ops;
 int
 main(int argc, char *argv[])
 {
-    PlincInterp *i;
-    char buf[256];
-    void *r;
-
+    struct termios orig, new;
     PlincFile si, so;
+    PlincInterp *i;
+    char buf[1024];
+    void *r;
+    int l;
 
     si.Ops = &stdio_ops;
     si.Ptr = stdin;
@@ -22,8 +26,6 @@ main(int argc, char *argv[])
     
     i = PlincNewInterp(HEAPSIZE);
     if (i) {
-/*        fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);*/
-
         i->StdIn.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOWRITE
             | PLINC_ATTR_LIT;
         i->StdIn.Val.Ptr = &si;
@@ -32,18 +34,30 @@ main(int argc, char *argv[])
             | PLINC_ATTR_NOEXEC | PLINC_ATTR_LIT;
         i->StdOut.Val.Ptr = &so;
         
+        tcgetattr(STDIN_FILENO, &orig);
+        new = orig;
+        cfmakeraw(&new);
+#if 0
+        new.c_iflag |= ICRNL;
+#endif
+        new.c_oflag = OPOST|ONLCR;
+        tcsetattr(STDIN_FILENO, TCSANOW, &new);
+    
         r = PlincExecStr(i, "prompt\n");
-        while (fgets(buf, sizeof(buf), stdin)) {
+        while ((l = PlincEditLine(i, buf, sizeof(buf) - 2)) >= 0) {
+            buf[l++] = '\n';
+            buf[l++] = '\0';
             r = PlincExecStr(i, buf);
             if (r) {
                 fprintf(stderr, "ERROR: %p ", r);
                 fwrite(((char*)(r))+1, *(unsigned char *)(r), 1, stderr);
                 fprintf(stderr, "\n");
             }
-        r = PlincExecStr(i, "prompt\n");
-/*            fprintf(stderr, "> ");*/
+            r = PlincExecStr(i, "prompt\n");
         }
         
+        tcsetattr(STDIN_FILENO, TCSANOW, &orig);
+
         PlincFreeInterp(i);
     } else {
         return 1;
