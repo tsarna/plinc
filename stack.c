@@ -1,8 +1,12 @@
-/* $Endicor: stack.c,v 1.3 1999/01/17 21:04:54 tsarna Exp tsarna $ */
+/* $Endicor: stack.c,v 1.4 1999/01/17 21:06:23 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+
+
+static void clear_n(PlincInterp *i, int n);
+static int counttomark(PlincInterp *i);
 
 
 int
@@ -156,17 +160,78 @@ op_count(PlincInterp *i)
 
 
 
+static int
+counttomark(PlincInterp *i)
+{
+    int j;
+        
+    for (j = 0; j < i->OpStack.Len; j++) {
+        if (PLINC_IS_MARK(PLINC_OPTOPDOWN(i, j))) {
+            return j;
+        }
+    }
+        
+    return -1;
+}
+
+
+
+static void *
+op_counttomark(PlincInterp *i)
+{
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        int j;
+        
+        j = counttomark(i);
+        if (j < 0) {
+            return i->unmatchedmark;
+        } else {
+            PlincVal v;
+            
+            v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+            v.Val.Int = j;
+        
+            PLINC_OPPUSH(i, v);
+        
+            return NULL;
+        }
+    }
+}
+
+
+
+static void *
+op_cleartomark(PlincInterp *i)
+{
+    int j;
+    
+    j = counttomark(i);
+    if (j < 0) {
+        return i->unmatchedmark;
+    } else {
+        clear_n(i, j+1);
+
+        return NULL;
+    }
+}
+
+
+
 static PlincOp ops[] = {
-    {"pop",     op_pop},
-    {"exch",    op_exch},
-    {"dup",     op_dup},
+    {"pop",         op_pop},
+    {"exch",        op_exch},
+    {"dup",         op_dup},
 
-    {"index",   op_index},
+    {"index",       op_index},
 
-    {"clear",   op_clear},
-    {"count",   op_count},
+    {"clear",       op_clear},
+    {"count",       op_count},
+    {"cleartomark", op_cleartomark},
+    {"counttomark", op_counttomark},
 
-    {NULL,      NULL}
+    {NULL,          NULL}
 };
 
 
