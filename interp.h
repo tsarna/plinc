@@ -6,6 +6,11 @@
 #include <plinc/stack.h>
 
 
+#ifdef WITH_SIMPLE_CTM
+#include <plinc/matrix.h>
+#endif
+
+
 #ifndef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
@@ -105,6 +110,11 @@ struct _PlincInterp {
    
     /* misc state */
     int             GotInterrupt;    
+
+#ifdef WITH_SIMPLE_CTM
+    PlincMatrix     CTM;
+    PlincMatrix     DefaultMatrix;
+#endif    
 };
 
 
@@ -151,6 +161,9 @@ void            PlincInitStringOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
 #ifdef WITH_REAL
 void            PlincInitRealOps(PlincInterp *i);
+#endif
+#ifdef WITH_MATRIX
+void            PlincInitMatrixOps(PlincInterp *i);
 #endif
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);
