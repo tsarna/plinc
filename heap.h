@@ -1,5 +1,7 @@
-/* $Endicor: heap.h,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
+/* $Endicor: heap.h,v 1.2 1999/01/12 23:13:28 tsarna Exp tsarna $ */
 
+#ifndef PLINC_HEAP_H
+#define PLINC_HEAP_H
 
 #include <plinc/types.h>
 
@@ -12,8 +14,8 @@ struct _PlincHeapHeader {
     size_t      Len;
     size_t      Left;
     void       *Top;
-    char       *Names;
-    char       *Objects;
+    void       *Names;
+    void       *Objects;
 };
 
 
@@ -30,3 +32,5 @@ PlincHeap  *PlincNewHeap(size_t size);
 void        PlincFreeHeap(PlincHeap *h);
 void       *PlincAllocHeap(PlincHeap *h, size_t len);
 void       *PlincName(PlincHeap *h, char *name, size_t len);
+
+#endif /* PLINC_HEAP_H */
