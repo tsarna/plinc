@@ -121,7 +121,7 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
         if ((PLINC_EXEC(*nv) && (i->ScanLevel == 0)
         && (PLINC_TYPE(*nv) != PLINC_TYPE_ARRAY))
         || PLINC_DOEXEC(*nv)) {
-            if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+            if (!PLINC_XSTACKROOM(i, 1)) {
                 return i->execstackoverflow;
             }
 
@@ -182,7 +182,7 @@ PushVal(PlincInterp *i, PlincVal *v)
             return i->stackoverflow;
         }
     } else {
-        if (PLINC_STACKROOM(i->ExecStack, 1)) {
+        if (PLINC_XSTACKROOM(i, 1)) {
             PLINC_PUSH(i->ExecStack, *v);
             return NULL;
         } else {
@@ -293,65 +293,50 @@ pres(i);
             break;
         }
 
-        while (r) {
+    error:
+        if (r) {
             if (r == i->stackoverflow) {
-                /* XXX copy stack into an array, clear stack, push
-                   array */
+                nv.Val.Ptr = PlincNewArray(i->Heap, i->OpStack.Len);
+                if (nv.Val.Ptr) {
+                    nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_ARRAY | (i->OpStack.Len);
+
+                    /* XXX ARRAYPUT */
+                    memcpy(nv.Val.Ptr, i->OpStack.Stack,
+                        sizeof(PlincVal) * (i->OpStack.Len));
+                    i->OpStack.Len = 1;
+                    *(i->OpStack.Stack) = nv;
+                } else {
+                    while (i->OpStack.Len) {
+                        PLINC_OPPOP(i);
+                    }
+                    r = i->VMerror;
+                }
             }
             
             nv.Flags = PLINC_TYPE_NAME;
             nv.Val.Ptr = r;
             r = PlincGetDict(i, i->errordict, &nv, &nv);
             if (r == i->undefined) {
-                return r; /* XXX */
+                return nv.Val.Ptr; /* XXX */
+            } else if (!r) {
+                if (PLINC_OPSTACKROOM(i, 1)) {
+                    PLINC_OPPUSH(i, *v);
+                    PLINC_XPOP(i);
+                    PLINC_XPUSH(i, nv);
+                    r = NULL;
+                    continue;
+                } else {
+                    r = i->stackoverflow;
+                }
             }
-            
-            if (!r) {
-                /* XXX pop x onto op, push nv on x */
-            }
+
+            goto error;
         }
 
         PLINC_XPOP(i);
     }
     
     return NULL;
-}
-
-
-
-static void *
-op_rbrace(PlincInterp *i)
-{
-    PlincVal v;
-
-    if (PLINC_OPSTACKROOM(i, 1)) {
-        i->ScanLevel++;
-#if 0
-fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
-#endif
-        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;
-        PLINC_OPPUSH(i, v);
-
-        return NULL;
-    } else {
-        return i->stackoverflow;
-    }
-}
-
-
-
-static void *
-op_dot_decscan(PlincInterp *i)
-{
-    if (i->ScanLevel) {
-        i->ScanLevel--;
-#if 0
-fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
-#endif
-        return NULL;
-    } else {
-        return i->syntaxerror;
-    }
 }
 
 
@@ -370,7 +355,7 @@ op_exec(PlincInterp *i)
         v = &PLINC_OPTOPDOWN(i, 0);
 
         PLINC_TOPDOWN(i->ExecStack, 0) = *v;
-        PLINC_OPPOP(i);
+        i->OpStack.Len--;
 
         /* tell main loop not to pop the execstack */
         return i;
@@ -425,7 +410,7 @@ op_stopped(PlincInterp *i)
 
     if (!PLINC_OPSTACKHAS(i, 1)) {
         return i->stackunderflow;
-    } else if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+    } else if (!PLINC_XSTACKROOM(i, 1)) {
         return i->execstackoverflow;
     } else {
         v = &PLINC_OPTOPDOWN(i, 0);
@@ -538,8 +523,6 @@ op_ifelse(PlincInterp *i)
 
 static const PlincOp ops[] = {
     {op_dot_stopped,    ".stopped"},    /* XXX must be first */
-    {op_rbrace,         "{"},
-    {op_dot_decscan,    ".decscan"},
     {op_exec,           "exec"},
     {op_if,             "if"},
     {op_ifelse,         "ifelse"},
