@@ -49,7 +49,7 @@ struct _PlincFile {
 #define PLINC_HEXBUFSIZE  32
 
 
-struct _PlincHexFile {
+typedef struct _PlincEHexFile {
     const PlincFileOps     *Ops;
     PlincFile              *File;
     PlincUInt               Flags;
@@ -59,12 +59,21 @@ struct _PlincHexFile {
     PlincUInt               Len;
     PlincUInt               Col;
     char                    Buf[PLINC_HEXBUFSIZE];
-};
-
-typedef struct _PlincHexFile PlincHexFile;
+} PlincEHexFile;
 
 
-void    PlincInitHexEncode(PlincHexFile *hf, PlincFile *f, PlincUInt flags);
+typedef struct _PlincDHexFile {
+    const PlincFileOps     *Ops;
+    PlincFile              *File;
+    PlincUInt               Flags;
+/*      PLINC_HEXF_CLOSETARGET      above */
+#define PLINC_HEXF_UNREAD           0x08
+    char                    Unread;
+} PlincDHexFile;
+
+
+void    PlincInitHexEncode(PlincEHexFile *hf, PlincFile *f, PlincUInt flags);
+void    PlincInitHexDecode(PlincDHexFile *hf, PlincFile *f, PlincUInt flags);
 
 
 extern const PlincFileOps plinc_closed_ops;
@@ -74,6 +83,7 @@ PlincInt    plinc_ioerr_rdwrstring(PlincFile *f, char *buf, PlincInt l);
 int         plinc_ioerr_unreadwrite(PlincFile *f, int c);
 PlincInt    plinc_ioerr_readline(PlincFile *f, char *buf, PlincInt *l);
 
+int         plinc_io_readeof(PlincFile *f);
 int         plinc_io_flushops(PlincFile *f);
 PlincInt    plinc_io_bytesavailable(PlincFile *f);
 PlincInt    plinc_io_readstring(PlincFile *f, char *buf, PlincInt l);
