@@ -50,6 +50,11 @@ struct _PlincInterp {
     void           *LeftAngleAngle;
     void           *RightAngleAngle;
     
+    /* Files */
+    
+    PlincVal        StdIn;
+    PlincVal        StdOut;
+
     /* Dicts */
     PlincDict      *systemdict;
     PlincDict      *errordict;
@@ -146,6 +151,7 @@ void            PlincInitRealOps(PlincInterp *i);
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);
 void            PlincInitLoopOps(PlincInterp *i);
+void            PlincInitFileOps(PlincInterp *i);
 void            PlincInitPolymorphOps(PlincInterp *i);
 void            PlincInitVMOps(PlincInterp *i);
 
