@@ -29,4 +29,9 @@ void       *PlincAllocHeapLinked(PlincHeap *h, size_t len);
 void       *PlincAllocHeap(PlincHeap *h, size_t len);
 void       *PlincName(PlincHeap *h, char *name, size_t len);
 
+void       *PlincBorrowMemory(PlincHeap *h, PlincUInt *len);
+void        PlincBorrowAbort(PlincHeap *h, void *p, PlincUInt len);
+void       *PlincBorrowFinalize(PlincHeap *h, void *p, PlincUInt borrowed,
+                PlincUInt used);
+       
 #endif /* PLINC_HEAP_H */
