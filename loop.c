@@ -33,9 +33,9 @@ op_dot_looper(PlincInterp *i)
                 n->Val.Int--;
             }
         } else {
-            PLINC_POP(i->ExecStack); /* .looper */
-            PLINC_POP(i->ExecStack); /* proc */
-            PLINC_POP(i->ExecStack); /* count */
+            PLINC_XPOP(i); /* .looper */
+            PLINC_XPOP(i); /* proc */
+            PLINC_XPOP(i); /* count */
         }
     } else if (PLINC_SIZE(*l) == LOOP_LOOP) {
         if (!PLINC_STACKROOM(i->ExecStack, 1)) {
@@ -59,10 +59,10 @@ op_dot_looper(PlincInterp *i)
                     PLINC_OPPUSH(i, ((PlincVal *)(n->Val.Ptr))[x->Val.Int++]);
                     PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
                 } else {
-                    PLINC_POP(i->ExecStack); /* .looper */
-                    PLINC_POP(i->ExecStack); /* proc */
-                    PLINC_POP(i->ExecStack); /* count */
-                    PLINC_POP(i->ExecStack); /* object */
+                    PLINC_XPOP(i); /* .looper */
+                    PLINC_XPOP(i); /* proc */
+                    PLINC_XPOP(i); /* count */
+                    PLINC_XPOP(i); /* object */
                 }
             } else if (PLINC_TYPE(*n) == PLINC_TYPE_ARRAY) {
                 if (x->Val.Int < PLINC_SIZE(*n)) {
@@ -75,10 +75,10 @@ op_dot_looper(PlincInterp *i)
                     PLINC_OPPUSH(i, v);
                     PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
                 } else {
-                    PLINC_POP(i->ExecStack); /* .looper */
-                    PLINC_POP(i->ExecStack); /* proc */
-                    PLINC_POP(i->ExecStack); /* count */
-                    PLINC_POP(i->ExecStack); /* object */
+                    PLINC_XPOP(i); /* .looper */
+                    PLINC_XPOP(i); /* proc */
+                    PLINC_XPOP(i); /* count */
+                    PLINC_XPOP(i); /* object */
                 }
             } else if (PLINC_TYPE(*n) == PLINC_TYPE_DICT) {
                 d = n->Val.Ptr;
@@ -99,10 +99,10 @@ op_dot_looper(PlincInterp *i)
                     }
                 }
 
-                PLINC_POP(i->ExecStack); /* .looper */
-                PLINC_POP(i->ExecStack); /* proc */
-                PLINC_POP(i->ExecStack); /* count */
-                PLINC_POP(i->ExecStack); /* object */
+                PLINC_XPOP(i); /* .looper */
+                PLINC_XPOP(i); /* proc */
+                PLINC_XPOP(i); /* count */
+                PLINC_XPOP(i); /* object */
             }
         }
     }
@@ -202,7 +202,7 @@ op_exit(PlincInterp *i)
                         return i->invalidexit;
                     } else {
                         while (j) {
-                            PLINC_POP(i->ExecStack);
+                            PLINC_XPOP(i);
                             j--;
                         }
                         
