@@ -292,6 +292,89 @@ op_equalsonly(PlincInterp *i)
 
 
 static void *
+op_eqeqone(PlincInterp *i)
+{
+    union {
+        /* we'll only use one or the other */
+        char buf[PLINC_FMT_BUFLEN];
+        PlincEncFile ef;
+    } data;
+    char *p = data.buf;
+    int len = PLINC_FMT_BUFLEN;
+    PlincFile *f;
+    PlincVal *v;
+    void *r = NULL;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        f = (PlincFile *)(i->StdOut.Val.Ptr);
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_IS_STRING(*v)) {
+            PlincInitPStrEncode(&(data.ef), f, PLINC_ENCF_WITHBOD);
+            len = PlincWriteString((PlincFile *)&(data.ef), v->Val.Ptr,
+                PLINC_SIZE(*v));
+
+            len = (len < PLINC_SIZE(*v)) ? PLINC_IOERR :
+                PlincClose((PlincFile *)&(data.ef));
+        } else {
+            if (PLINC_IS_NAME(*v) && PLINC_LIT(*v)) {
+                len = PlincWrite(f, '/');
+                if (len) {
+                    return i->ioerror;
+                }
+            }
+            
+            switch(PLINC_TYPE(*v)) {
+            case PLINC_TYPE_ARRAY:
+                p = "-array-"; len = 7;
+                break;
+        
+            case PLINC_TYPE_DICT:
+                p = "-dict-"; len = 6;
+                break;
+            
+            case PLINC_TYPE_FILE:
+                p = "-file-"; len = 6;
+                break;
+            
+            case PLINC_TYPE_MARK:
+                p = "-mark-"; len = 6;
+                break;
+            
+            case PLINC_TYPE_NULL:
+                p = "-null-"; len = 6;
+                break;
+            
+            case PLINC_TYPE_SAVE:
+                p = "-save-"; len = 6;
+                break;
+
+            default:            
+                r = PlincFmtCVS(i, v, &p, &len);
+            }
+        
+            if (!r) {
+                len = PlincWriteString(f, p, len);
+            }
+        }
+        
+        if (!r) {
+            if (len == PLINC_IOERR) {
+                return i->ioerror;
+            }   
+
+            PLINC_OPPOP(i);
+        }
+        
+        return r;
+    }
+}
+
+
+
+static void *
 op_equalsequals(PlincInterp *i)
 {
     void *r;
@@ -329,12 +412,13 @@ op_pstack(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
-    {op_equals,         "="},
-    {op_equalsonly,     "=only"},
-    {op_equalsequals,   "=="},
-    {op_pstack,         "pstack"},
+    {op_equals,             "="},
+    {op_equalsonly,         "=only"},
+    {op_eqeqone,            "==one"},
+    {op_equalsequals,       "=="},
+    {op_pstack,             "pstack"},
     
-    {NULL,              NULL}
+    {NULL,                  NULL}
 };
 
 

@@ -22,8 +22,17 @@ early = """
 
 /bind {} dup exec def
 
-% stack printing operators
+% printing operators
 
+/==array {
+        dup xcheck {({)} {([)} ifelse print
+        dup dup 0 exch length 1 sub getinterval {==only ( ) print} forall
+        dup dup length 1 sub get ==only
+        xcheck {(})} {(])} ifelse print
+}bind def
+
+/==only {dup type /arraytype eq {==array} {==one} ifelse} bind def
+/== {==only (\n) print} bind def
 /stack {0 1 count 3 sub {index =} for} bind def
 %/pstack {0 1 count 3 sub {index ==} for} bind def
 
