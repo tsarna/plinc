@@ -30,6 +30,8 @@ typedef float               PlincReal;
 #define PLINC_ATTR_NOWRITE  0x20000000
 #define PLINC_ATTR_NOEXEC   0x10000000
 #define PLINC_ATTR_DOEXEC   0x08000000
+#define PLINC_ACCESS_MASK   (PLINC_ATTR_NOREAD | PLINC_ATTR_NOWRITE \
+                             | PLINC_ATTR_NOEXEC)
 #define PLINC_TYPE_MASK     0x07F00000
 #define PLINC_SIZE_MASK     0x000FFFFF
 
@@ -45,6 +47,7 @@ typedef float               PlincReal;
 
 #define PLINC_TYPE(x)       ((x).Flags & PLINC_TYPE_MASK)
 #define PLINC_SIZE(x)       ((x).Flags & PLINC_SIZE_MASK)
+#define PLINC_SET_SIZE(x,s) ((x).Flags = ((x).Flags & ~PLINC_SIZE_MASK) | (s))
 
 #define PLINC_TYPE_INT      0x00000000
 #define PLINC_TYPE_REAL     0x00100000
@@ -62,6 +65,7 @@ typedef float               PlincReal;
 
 #define PLINC_IS_INT(x)     (PLINC_TYPE(x) == PLINC_TYPE_INT)
 #define PLINC_IS_REAL(x)    (PLINC_TYPE(x) == PLINC_TYPE_REAL)
+#define PLINC_IS_STRING(x)  (PLINC_TYPE(x) == PLINC_TYPE_STRING)
 #define PLINC_IS_FILE(x)    (PLINC_TYPE(x) == PLINC_TYPE_FILE)
 #define PLINC_IS_NULL(x)    (PLINC_TYPE(x) == PLINC_TYPE_NULL)
 #define PLINC_IS_MARK(x)    (PLINC_TYPE(x) == PLINC_TYPE_MARK)
