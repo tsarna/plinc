@@ -1,4 +1,4 @@
-/* $Endicor: string.c,v 1.3 1999/01/20 20:30:12 tsarna Exp $ */
+/* $Endicor: string.c,v 1.4 1999/01/24 03:47:42 tsarna Exp $ */
 
 
 #include <plinc/interp.h>

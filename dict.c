@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.15 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.16 1999/01/25 04:35:58 tsarna Exp $ */
 
 
 #include <plinc/interp.h>

@@ -1,5 +1,3 @@
-/* $Endicor: stack.c,v 1.13 1999/01/26 04:27:04 tsarna Exp $ */
-
 #include <plinc/interp.h>
 
 #include <stdlib.h>

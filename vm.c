@@ -1,5 +1,3 @@
-/* $Endicor: vm.c,v 1.2 1999/01/20 20:30:12 tsarna Exp $ */
-
 #include <plinc/interp.h>
 
 #include <stdlib.h>

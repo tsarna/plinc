@@ -1,5 +1,3 @@
-/* $Endicor: stack.h,v 1.5 1999/01/17 04:58:16 tsarna Exp $ */
-
 #include <plinc/types.h>
 
 typedef struct _PlincStack PlincStack;

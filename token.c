@@ -1,5 +1,3 @@
-/* $Endicor: token.c,v 1.6 1999/01/20 05:31:25 tsarna Exp $ */
-
 #include <plinc/token.h>
 
 #include <stdlib.h>

@@ -1,5 +1,3 @@
-/* $Endicor: heap.h,v 1.2 1999/01/12 23:13:28 tsarna Exp tsarna $ */
-
 #ifndef PLINC_HEAP_H
 #define PLINC_HEAP_H
 

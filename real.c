@@ -1,7 +1,5 @@
 #ifdef WITH_REAL
 
-/* $Endicor: arith.c,v 1.7 1999/01/24 03:47:42 tsarna Exp $ */
-
 #include <plinc/interp.h>
 #include <plinc/fpmath.h>
 

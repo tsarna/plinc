@@ -1,6 +1,4 @@
 #!/usr/pkg/bin/python
-#
-# $Endicor: defs.py,v 1.9 1999/01/21 23:36:55 tsarna Exp $
 
 
 early = """
