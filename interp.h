@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.10 1999/01/18 21:16:20 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.11 1999/01/18 22:05:42 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -58,6 +58,8 @@ struct _PlincInterp {
     void           *interrupt;
     void           *invalidaccess;
 
+    void           *limitcheck;
+
     void           *rangecheck;
     void           *stackunderflow;
     void           *stackoverflow;
@@ -93,6 +95,8 @@ void            PlincInitVals(PlincInterp *i);
 void           *PlincNewArray(PlincHeap *h, PlincUInt size);
 void           *PlincArrayVal(PlincInterp *i, PlincVal *a, PlincVal *ret);
 
+void           *PlincNewString(PlincHeap *h, PlincUInt size);
+
 void           *PlincNewDict(PlincHeap *h, PlincUInt size);
 PlincUInt       PlincHash(PlincUInt r);
 PlincUInt       PlincHashVal(PlincVal *v);
@@ -109,6 +113,7 @@ void            PlincInitStackOps(PlincInterp *i);
 void            PlincInitPrintOps(PlincInterp *i);
 void            PlincInitArithOps(PlincInterp *i);
 void            PlincInitArrayOps(PlincInterp *i);
+void            PlincInitStringOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);

@@ -1,10 +1,16 @@
-/* $Endicor: array.c,v 1.4 1999/01/18 05:13:40 tsarna Exp $ */
+/* $Endicor: array.c,v 1.5 1999/01/18 22:05:42 tsarna Exp tsarna $ */
 
 
-#include <plinc/array.h>
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+
+
+typedef struct _PlincArray PlincArray;
+struct _PlincArray {
+    PlincUInt   Flags;
+};
+
 
 
 void *

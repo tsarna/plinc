@@ -1,4 +1,4 @@
-/* $Endicor: token.c,v 1.3 1999/01/17 21:04:54 tsarna Exp tsarna $ */
+/* $Endicor: token.c,v 1.4 1999/01/17 21:06:23 tsarna Exp $ */
 
 #include <plinc/token.h>
 
@@ -19,12 +19,14 @@
 #define isendname(c)    (_toktab[(unsigned char)(c)] & (SP|WS))
 #define isstartnum(c)   (_toktab[(unsigned char)(c)] & SN)
 #define isdigit(c)      (_toktab[(unsigned char)(c)] & DG)
+#define isoctal(c)      (isdigit(c) && ((c) < '8'))
 #define val(c)          (_toktab[(unsigned char)(c)] & 0xFF)
 
 
 static void    *NumToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v);
 static int      IntToken(char **p, size_t *l, PlincInt *n, int base);
 static void    *NameToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v);
+static void    *StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v);
 
 
 void *
@@ -63,6 +65,7 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
             v->Val.Ptr = i->RightBrace;
             goto ok1;
         } else if (*p == '>') {
+            /* XXX >> */
             return i->syntaxerror;
         } else if (*p == '<') {
             l--;
@@ -75,7 +78,10 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
                 }
             }
         } else if (*p == '(') {
-            /*XXX*/
+            p++; l--;
+            *eaten = len - l;
+                        
+            return StringToken(i, p, l, eaten, v);
         } else if (isstartnum(*p)) {
             *eaten = len - l;
                         
@@ -218,4 +224,124 @@ PlincTokenVal(PlincInterp *i, PlincVal *vi, PlincVal *vo)
     }
        
     return r;
+}
+
+
+static void *
+StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
+{
+    size_t sl = 0, l = len;
+    char *p = buf, *s;
+    int nest = 1;
+
+    while (l && nest) {
+        if (*p == '(') {
+            nest++; sl++;
+        } else if (*p == ')') {
+            nest--; sl++;
+        } else if (*p == '\\') {
+            p++; l--;
+            if (l) {
+                if (*p == '\n') {
+                    /* nothing */
+                } else if (isoctal(*p)) {
+                    if (l > 1) {
+                        sl++;
+                        if (isoctal(p[1])) {
+                            p++; l--;
+                            if (l > 1) {
+                                if (isoctal(p[1])) {
+                                    p++; l--;
+                                }
+                            } else {
+                                return NULL;
+                            }
+                        }
+                    } else {
+                        return NULL;
+                    }
+                } else {
+                    sl++;
+                }
+            } else {
+                return NULL;
+            }
+        } else {
+            sl++;
+        }
+        
+        p++; l--;
+    }
+    
+    if (nest) {
+        return NULL;
+    } else {
+        sl--;
+        
+        if (sl > PLINC_MAXLEN) {
+            return i->limitcheck;
+        }
+        
+        s = PlincNewString(i->Heap, sl);
+        
+        v->Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | sl;
+        v->Val.Ptr = s;
+        
+        p = buf;
+        nest = 1;
+
+        while (nest) {
+            if (*p == '(') {
+                nest++; *s++ = *p;
+            } else if (*p == ')') {
+                nest--;
+                if (nest) {
+                    *s++ = *p;
+                }
+            } else if (*p == '\\') {
+                p++;
+                if (*p == '\n') {
+                    /* nothing */
+                } else if (*p == 'n') {
+                    *s++ = '\n';
+                } else if (*p == 'r') {
+                    *s++ = '\r';
+                } else if (*p == 't') {
+                    *s++ = '\t';
+                } else if (*p == 'b') {
+                    *s++ = '\x8';
+                } else if (*p == 'f') {
+                    *s++ = '\f';
+                } else if (*p == '\\') {
+                    *s++ = *p;
+                } else if (isoctal(*p)) {
+                    *s = val(*p);
+
+                    if (isoctal(p[1])) {
+                        p++;
+                        *s <<= 3;
+                        *s |= val(*p);
+                        
+                        if (isoctal(p[1])) {
+                            p++;
+                            *s <<= 3;
+                            *s |= val(*p);
+                        }
+                    }
+
+                    s++;
+                } else {
+                    *s++ = *p;
+                }
+            } else {
+                *s++ = *p;
+            }
+        
+            p++;
+        }
+
+        *eaten += (len - l);
+
+        return i;
+    }
 }

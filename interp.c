@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.9 1999/01/18 05:13:40 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.10 1999/01/18 21:16:20 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -38,6 +38,7 @@ PlincNewInterp(size_t heapsize)
             PlincInitPrintOps(i);
             PlincInitArithOps(i);
             PlincInitArrayOps(i);
+            PlincInitStringOps(i);
             PlincInitDictOps(i);
             PlincInitRelationalOps(i);
             PlincInitControlOps(i);
@@ -86,6 +87,8 @@ PlincInitErrorNames(PlincInterp *i)
 
     DEFERR(interrupt);
     DEFERR(invalidaccess);
+
+    DEFERR(limitcheck);
 
     DEFERR(rangecheck);
     DEFERR(stackoverflow);

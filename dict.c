@@ -1,10 +1,12 @@
-/* $Endicor: dict.c,v 1.8 1999/01/18 21:16:20 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.9 1999/01/18 22:05:42 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
 #include <stdio.h> /*XXX*/
+
+#define min(a, b)  ((a) < (b) ? (a) : (b))
 
 
 void *
@@ -64,6 +66,7 @@ PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
 {
     void *r = NULL;
     PlincUInt j;
+    PlincVal v;
 
     if (!PLINC_CAN_WRITE(*d)) {
         r = i->invalidaccess;
@@ -71,6 +74,17 @@ PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
         r = i->dictfull;
     } else {
         d->Len++;
+
+        if (PLINC_TYPE(*key) == PLINC_TYPE_STRING) {
+            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr,
+                min(PLINC_SIZE(*key), PLINC_MAXNAMELEN));
+            if (v.Val.Ptr) {
+                v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
+                key = &v;
+            } else {
+                return i->VMerror;
+            }
+        }
 
         /* XXX convert strings to names here */
         
