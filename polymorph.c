@@ -69,6 +69,7 @@ op_copy(PlincInterp *i)
             } else if (PLINC_SIZE(*v1) > PLINC_SIZE(*v0)) {
                 return i->rangecheck;
             } else {
+                /* ARRAYPUT */
                 memcpy(v0->Val.Ptr, v1->Val.Ptr,
                     PLINC_SIZE(*v1) * sizeof(PlincVal));
 
@@ -208,11 +209,7 @@ op_put(PlincInterp *i)
             } else if ((v1->Val.Int < 0) || (v1->Val.Int >= PLINC_SIZE(*v2))) {
                 return i->rangecheck;
             } else {
-                PLINC_INCREF_VAL(*v0);
-
-                ((PlincVal *)(v2->Val.Ptr))[v1->Val.Int] = *v0;
-                
-                r = NULL;
+                r = PlincPutArray(i, v2->Val.Ptr, v1->Val.Int, v0);
             }
         } else {
             return i->typecheck;
@@ -307,12 +304,61 @@ op_getinterval(PlincInterp *i)
 
 
 
+static void *
+op_putinterval(PlincInterp *i)
+{
+    PlincVal *s, *iv, *d;
+    PlincInt ix, l, j;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 3)) {
+        return i->stackunderflow;
+    } else {
+        d = &PLINC_OPTOPDOWN(i, 2);
+        iv = &PLINC_OPTOPDOWN(i, 1);
+        s = &PLINC_OPTOPDOWN(i, 0);
+        
+        ix = iv->Val.Int;
+        l = PLINC_SIZE(*s);
+        
+        if ((PLINC_TYPE(*iv) != PLINC_TYPE_INT)
+        ||  (PLINC_TYPE(*s) != PLINC_TYPE(*d))
+        ||  ((PLINC_TYPE(*s) != PLINC_TYPE_STRING)
+          && (PLINC_TYPE(*s) != PLINC_TYPE_ARRAY))) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*s) || !PLINC_CAN_WRITE(*d)) {
+            return i->invalidaccess;
+        } else if (((l + ix) > PLINC_SIZE(*d)) || (ix < 0)) {
+            return i->rangecheck;
+        } else if (PLINC_TYPE(*s) == PLINC_TYPE_STRING) {
+            memcpy(((char *)d->Val.Ptr) + ix, s->Val.Ptr, l);
+        } else if (PLINC_TYPE(*s) == PLINC_TYPE_ARRAY) {
+            for (j = 0; j < l; j++) {
+                r = PlincPutArray(i, d->Val.Ptr, j+ix,
+                    &( ((PlincVal *)(s->Val.Ptr))[j] ) );
+                if (r) {
+                    return r;
+                }
+            }
+        }
+
+        PLINC_OPPOP(i);
+        PLINC_OPPOP(i);
+        PLINC_OPPOP(i);
+    }
+
+    return NULL;
+}
+
+
+
 static const PlincOp ops[] = {
     {op_copy,           "copy"},
     {op_get,            "get"},
     {op_put,            "put"},
     {op_length,         "length"},
     {op_getinterval,    "getinterval"},
+    {op_putinterval,    "putinterval"},
 
     {NULL,          NULL}
 };
