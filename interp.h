@@ -16,6 +16,7 @@
 #endif
 
 
+
 typedef struct _PlincDictEnt PlincDictEnt;
 struct _PlincDictEnt {
     PlincVal    Key;
@@ -195,6 +196,8 @@ PlincInt        PlincEditLine(PlincInterp *i, char *buf, PlincUInt len);
 PlincInt        PlincEditStatement(PlincInterp *i, char *buf, PlincUInt len);
 int             PlincStatementComplete(char *buf, PlincUInt len);
 
+void           *PlincFindName(PlincHeapHeader *hh, char *name, size_t len);
+void           *PlincParseNum(PlincInterp *i, PlincVal *v, char *p, int len);
 void           *PlincGo(PlincInterp *i);
 void           *PlincExecStr(PlincInterp *i, const char *s);
 
