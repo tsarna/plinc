@@ -5,13 +5,6 @@
 #include <string.h>
 
 
-#ifndef PLINC_HEX_BUFSIZE
-#define PLINC_HEX_BUFSIZE   32
-#endif
-#define HEXCHUNK ((PLINC_HEX_BUFSIZE)/2)
-
-static const char hexdigits[] = "0123456789abcdef";
-
 static const PlincFile closedfile;
 
 
@@ -305,10 +298,10 @@ op_writestring(PlincInterp *i)
 static void *
 op_writehexstring(PlincInterp *i)
 {
-    char buf[PLINC_HEX_BUFSIZE], *p, *s;
     PlincVal *v1, *v2;
+    PlincHexFile hf;
     PlincFile *f;
-    int c, l, h;
+    int r;
      
     if (!PLINC_OPSTACKHAS(i, 2)) {
         return i->stackunderflow;
@@ -323,38 +316,18 @@ op_writehexstring(PlincInterp *i)
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
-            l = PLINC_SIZE(*v2);
-            s = v2->Val.Ptr;
-            
-            while (l >= HEXCHUNK) {
-                h = HEXCHUNK; p = buf;
-                while (h) {
-                    *p++ = hexdigits[*s >> 4];
-                    *p++ = hexdigits[(*s++) & 0xF];
-                    h--;
-                }
-                
-                c = PlincWriteString(f, buf, PLINC_HEX_BUFSIZE);
-                if (c == PLINC_IOERR) {
-                    return i->ioerror;
-                }
-                l -= HEXCHUNK;
-            }
 
-            h = 0; p = buf;
-            while (l) {
-                *p++ = hexdigits[*s >> 4];
-                *p++ = hexdigits[(*s++) & 0xF];
-                h++; l--;
-            }
-                
-            c = PlincWriteString(f, buf, h*2);
-            if (c == PLINC_IOERR) {
+            PlincInitHexEncode(&hf, f, 0);
+            r = PlincWriteString((PlincFile *)&hf, v2->Val.Ptr, PLINC_SIZE(*v2));
+            r = (r < PLINC_SIZE(*v2)) ? PLINC_IOERR : \
+                plinc_hex_flushout((PlincFile *)&hf);
+
+            if (r == PLINC_IOERR) {
                 return i->ioerror;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
             }
-
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
         }
     }
 
@@ -628,8 +601,8 @@ PlincInitFileOps(PlincInterp *i)
 
 
 
-static int
-closed_file(PlincFile *f)
+int
+plinc_ioerr_file(PlincFile *f)
 {
     /* same call signature for read, close, flush, reset */
     
@@ -638,43 +611,65 @@ closed_file(PlincFile *f)
 
 
 
-static int
-closed_writeorunread(PlincFile *f, int c)
+int
+plinc_ioerr_unreadwrite(PlincFile *f, int c)
 {
     return PLINC_IOERR;
 }
 
 
 
-static PlincInt
-closed_readorwritestring(PlincFile *f, char *buf, PlincInt l)
+PlincInt
+plinc_ioerr_rdwrstring(PlincFile *f, char *buf, PlincInt l)
 {
     return PLINC_IOERR;
 }
 
 
 
-static PlincInt
-closed_readline(PlincFile *f, char *buf, PlincInt *l)
+PlincInt
+plinc_ioerr_readline(PlincFile *f, char *buf, PlincInt *l)
 {
     return PLINC_IOERR;
+}
+
+
+
+/*
+ *  default implementation of readtoeof/flushout/purge for a file
+ */
+int
+plinc_io_flushops(PlincFile *f)
+{
+    return 0;
+}
+
+
+
+/*
+ *  default implementation of bytesavailable for a file
+ */
+PlincInt
+plinc_io_bytesavailable(PlincFile *f)
+{
+    return -1;
 }
 
 
 
 const PlincFileOps plinc_closed_ops = {
-    closed_file,                /* close */
-    closed_file,                /* readtoeof */
-    closed_file,                /* flushout */
-    closed_file,                /* rpurge */
-    closed_file,                /* wpurge */
+    plinc_ioerr_file,           /* close */
+    plinc_ioerr_file,           /* readtoeof */
+    plinc_ioerr_file,           /* flushout */
+    plinc_ioerr_file,           /* rpurge */
+    plinc_ioerr_file,           /* wpurge */
     plinc_io_bytesavailable,    /* bytesavailable */
-    closed_file,                /* read  */
-    closed_readorwritestring,   /* readstring */
-    closed_readline,            /* readline */
-    closed_writeorunread,       /* unread */
-    closed_writeorunread,       /* write */
-    closed_readorwritestring,   /* writestring */
+    plinc_ioerr_file,           /* read  */
+    plinc_ioerr_rdwrstring,     /* readstring */
+    plinc_ioerr_readline,       /* readline */
+    plinc_ioerr_unreadwrite,    /* unread */
+    plinc_ioerr_unreadwrite,    /* write */
+    plinc_ioerr_rdwrstring,     /* writestring */
 };
 
 
