@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.11 1999/01/20 20:30:12 tsarna Exp tsarna $ */
+/* $Endicor: loop.c,v 1.1 1999/01/20 23:14:23 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdlib.h>
@@ -6,10 +6,10 @@
 
 /* numbers both distinguish types and say how much to pop when done */
 
-#define LOOP_LOOP       1
-#define LOOP_FORALL     2
-#define LOOP_REPEAT     3
-#define LOOP_FOR        4
+#define LOOP_LOOP       2       /* {block} .looper. */
+#define LOOP_REPEAT     3       /* 10 {block} .looper */       
+#define LOOP_FORALL     4       /* object ptr {block} .looper */
+#define LOOP_FOR        5       /* 0 1 10 {block} .looper */
 
 
 static const PlincOp ops[];     /* forward */
@@ -36,10 +36,17 @@ op_dot_looper(PlincInterp *i)
             PLINC_POP(i->ExecStack); /* proc */
             PLINC_POP(i->ExecStack); /* count */
         }
+    } else if (PLINC_SIZE(*l) == LOOP_LOOP) {
+        if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+            return i->execstackoverflow;
+        } else {
+            PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
+        }
     }
 
     return i;
 }
+
 
 
 static void *
@@ -81,9 +88,78 @@ op_repeat(PlincInterp *i)
 
 
 
+static void *
+op_loop(PlincInterp *i)
+{
+    PlincVal *v1, v;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+        return i->execstackoverflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+
+        if (PLINC_TYPE(*v1) != PLINC_TYPE_ARRAY) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_EXEC(*v1)) {
+            return i->invalidaccess;
+        } else {
+            PLINC_TOPDOWN(i->ExecStack, 0) = *v1;
+            PLINC_TOPDOWN(i->ExecStack, 0).Flags |= PLINC_ATTR_DOEXEC;
+
+            v.Flags = PLINC_TYPE_OP | LOOP_LOOP;
+            v.Val.Op = (PlincOp *)(&ops[0]);
+            PLINC_PUSH(i->ExecStack, v);
+
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return i;
+}
+
+
+
+static void *
+op_exit(PlincInterp *i)
+{
+    PlincVal *v;
+    int j;
+     
+    for (j = 0; j < i->ExecStack.Len; j++) {
+        v = &PLINC_TOPDOWN(i->ExecStack, j);
+        
+        if (PLINC_TYPE(*v) == PLINC_TYPE_OP) {
+            if (v->Val.Op == &ops[0]) {
+                while (j) {
+                    j += PLINC_SIZE(*v);
+                    
+                    if (!PLINC_STACKHAS(i->ExecStack, j)) {
+                        return i->invalidexit;
+                    } else {
+                        while (j) {
+                            PLINC_POP(i->ExecStack);
+                            j--;
+                        }
+                        
+                        return i;
+                    }
+                }
+            }
+        }
+    }
+
+    return i->invalidexit;
+}
+
+
+
 static const PlincOp ops[] = {
     {".looper",     op_dot_looper}, /* must be first */
     {"repeat",      op_repeat},
+    {"loop",        op_loop},
+    {"exit",        op_exit},
 
     {NULL,          NULL}
 };
