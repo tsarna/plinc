@@ -58,6 +58,7 @@ PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
         PlincInitPolymorphOps(i);
         PlincInitVMOps(i);
         PlincInitFltOps(i); /*XXX*/
+        PlincInitTokenOps(i); /*XXX*/
             
         if (PlincExecStr(i, early_defs)) {
             ok = FALSE;

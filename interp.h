@@ -177,6 +177,7 @@ void            PlincInitPolymorphOps(PlincInterp *i);
 void            PlincInitVMOps(PlincInterp *i);
 /*XXX*/
 void            PlincInitFltOps(PlincInterp *i);
+void            PlincInitTokenOps(PlincInterp *i);
 
 int             PlincEqual(PlincVal *v1, PlincVal *v2);
 void           *PlincReprVal(PlincInterp *i, PlincVal *v);
