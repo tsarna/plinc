@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.5 1999/01/17 05:14:05 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.6 1999/01/17 21:04:54 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -63,6 +63,8 @@ struct _PlincInterp {
     void           *typecheck;
     void           *undefined;
 
+    void           *unmatchedmark;
+
     void           *VMerror;
 };
 
@@ -88,12 +90,11 @@ void           *PlincPutDictName(PlincInterp *i, PlincDict *d,
 void           *PlincGetDict(PlincInterp *i, PlincDict *d,
                     PlincVal *key, PlincVal *val);
 void           *PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val);
-void            PlincPrintName(PlincInterp *i, void *name);
-void            PlincPrintDict(PlincInterp *i, PlincDict *d);
 
 void            PlincInitOps(PlincInterp *i, PlincOp *o);
 void            PlincInitStackOps(PlincInterp *i);
 void            PlincInitPrintOps(PlincInterp *i);
+void            PlincInitArithOps(PlincInterp *i);
 
 int             PlincEqual(PlincVal *v1, PlincVal *v2);
 void           *PlincReprVal(PlincInterp *i, PlincVal *v);
