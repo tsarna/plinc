@@ -1,5 +1,3 @@
-/* $Endicor: polymorph.c,v 1.12 1999/01/28 19:38:39 tsarna Exp $ */
-
 #include <plinc/interp.h>
 
 #include <stdlib.h>
@@ -111,7 +109,7 @@ op_get(PlincInterp *i)
                 return i->invalidaccess;
             } else if (PLINC_TYPE(*v1) != PLINC_TYPE_INT) {
                 return i->typecheck;
-            } else if ((v1->Val.Int < 0) || (v1->Val.Int > PLINC_SIZE(*v0))) {
+            } else if ((v1->Val.Int < 0) || (v1->Val.Int >= PLINC_SIZE(*v0))) {
                 return i->rangecheck;
             } else {
                 v = ((PlincVal *)v0->Val.Ptr)[v1->Val.Int];
