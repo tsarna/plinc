@@ -49,6 +49,7 @@ PlincNewInterp(size_t heapsize)
             PlincInitRelationalOps(i);
             PlincInitControlOps(i);
             PlincInitLoopOps(i);
+            PlincInitFileOps(i);
             PlincInitPolymorphOps(i);
             PlincInitVMOps(i);
             
