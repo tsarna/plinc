@@ -195,11 +195,11 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
         switch (c) {
         case PLINC_EOF:
             r = i;
-            goto done;
+            break;
 
         case PLINC_IOERR:
             r = i->ioerror;
-            goto done;
+            break;
                         
         case ' ':
         case '\t':
@@ -221,7 +221,7 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
             if (depth) {
                 if (!PLINC_STACKROOM(i->ExecStack, 1)) {
                     r = i->stackoverflow;
-                    goto done;
+                    break;
                 }
                 i->ExecStack.Len++;
                 PLINC_TOPDOWN(i->ExecStack, 0).Val.Int = len;
@@ -246,7 +246,7 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
                     }
                 } else {
                     r = i->VMerror;
-                    goto done;
+                    break;
                 }
 
                 if (depth) {
@@ -258,7 +258,7 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
                 }
             } else {
                 r = i->syntaxerror;
-                goto done;
+                break;
             }
          
         case '<':
@@ -275,12 +275,9 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
                 c = PlincUnRead(f, c);
                 if (c) {
                     r = i->ioerror;
-                    goto done;
+                    break;
                 }
                 r = PlincGetString(i, f, &v, PlincInitHexDecode);
-                if (r) {
-                    goto done;
-                }
                 break;
             }
             
@@ -288,14 +285,11 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
             c = PlincRead(f);
             if (c == PLINC_IOERR) {
                 r = i->ioerror;
-                goto done;
             } else if (c == PLINC_EOF) {
                 r = i->syntaxerror;
-                goto done;
             } else if (c == '>') {
                 v.Flags = PLINC_TYPE_NAME;
                 v.Val.Ptr = i->RightAngleAngle;
-                break;
             } else {
                 c = PlincUnRead(f, c);
                 if (c) {
@@ -303,97 +297,82 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
                 } else {
                     r = i->syntaxerror;
                 }
-                goto done;
             }
+            break;
             
         case '(':
             r = PlincGetString(i, f, &v, PlincInitPStrDecode);
-            if (r) {
-                goto done;
-            }
             break;
             
         case ')':
             r = i->syntaxerror;
-            goto done;
+            break;
             
         case '%':
             do {
                 c = PlincRead(f);
                 if (c == PLINC_EOF) {
                     r = i;
-                    goto done;
                 } else if (c == PLINC_IOERR) {
                     r = i->ioerror;
-                    goto done;
                 }
-            } while ((c != '\r') && (c != '\n'));
+            } while (!r && (c != '\r') && (c != '\n'));
+            if (r) {
+                break;
+            }
 	    continue;
 	
         case '/':
             c = PlincRead(f);
             if (c == PLINC_IOERR) {
                 r = i->ioerror;
-                goto done;
             } else if (c == '/') {
                 c = PlincRead(f);
                 r = PlincGetOther(i, f, &v, c, 2);
-                if (r) {
-                    goto done;
-                } else {
-                    break;
-                }
             } else {
                 r = PlincGetOther(i, f, &v, c, 1);
-                if (r) {
-                    goto done;
-                } else {
-                    break;
-                }
             }
+            break;
             
         default:
             r = PlincGetOther(i, f, &v, c, 0);
-            if (r) {
-                goto done;
-            } else {
-                break;
-            }
+            break;
         }
 
         /* ok, now do something with the value we got */
 
-        if (depth) {
-            if (!PLINC_OPSTACKROOM(i, 1)) {
-                r = i->stackoverflow;
-                goto done;
+        if (!r) {
+            if (depth) {
+                if (!PLINC_OPSTACKROOM(i, 1)) {
+                    r = i->stackoverflow;
+                    break;
+                } else {
+                    PLINC_OPPUSH(i, v);
+                    len++;
+                }
+                continue;
             } else {
-                PLINC_OPPUSH(i, v);
-                len++;
+                *val = v;
+                return NULL;
             }
-            continue;
-        } else {
-            *val = v;
-            return NULL;
         }
         
-    } while (1);
-
-    done:
-        while (depth) {
-            while (len) {
-                PLINC_OPPOP(i);
-                len--;
-            }
-            depth--;
-            if (depth) {
-                len = PLINC_TOPDOWN(i->ExecStack, 0).Val.Int;
-                i->ExecStack.Len--;
+        if (r) {
+            while (depth) {
+                while (len) {
+                    PLINC_OPPOP(i);
+                    len--;
+                }
+                depth--;
+                if (depth) {
+                    len = PLINC_TOPDOWN(i->ExecStack, 0).Val.Int;
+                    i->ExecStack.Len--;
+                }
             }
         }
+    } while (!r);
 
-        /* XXX unwind if depth */
-        return r;
+    return r;
 }
 
 
