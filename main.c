@@ -1,5 +1,3 @@
-/* $Endicor: main.c,v 1.4 1999/01/17 21:04:54 tsarna Exp $ */
-
 #include <plinc/interp.h>
 #include <stdio.h>
 
@@ -14,7 +12,7 @@ main(int argc, char *argv[])
     
     i = PlincNewInterp(HEAPSIZE);
     if (i) {
-        fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);
+/*        fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);*/
 
         while (fgets(buf, sizeof(buf), stdin)) {
             r = PlincExecStr(i, buf);
