@@ -18,6 +18,7 @@ struct _PlincStack {
 
 #define PLINC_POP(s)            do { (s).Len--; PLINC_DECREF_VAL((s).Stack[(s).Len]); } while (0)
 #define PLINC_OPPOP(i)          PLINC_POP((i)->OpStack)
+#define PLINC_XPOP(i)           PLINC_POP((i)->ExecStack)
 
 #define PLINC_TOPDOWN(s, n)     ((s).Stack[(s).Len - 1 - (n)])
 #define PLINC_OPTOPDOWN(i, n)   PLINC_TOPDOWN((i)->OpStack, (n))
