@@ -183,7 +183,7 @@ static void *
 op_readhexstring(PlincInterp *i)
 {
     PlincVal *v1, *v2, nv;
-    PlincDHexFile hf;
+    PlincDecodeFile hf;
     PlincFile *f;
     PlincInt r, s;
      
