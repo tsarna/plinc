@@ -11,19 +11,19 @@ static const char hexdigits[] = "0123456789abcdef";
 static int
 hex_e_close(PlincFile *f)
 {
-    PlincEHexFile *hf = (PlincEHexFile *)f;
+    PlincEncFile *hf = (PlincEncFile *)f;
     int r = 0;
 
-    if (hf->Flags & PLINC_HEXF_WITHEOD) {
-        if ((hf->Len+1) >= PLINC_HEXBUFSIZE) {
-            r = plinc_hex_flushout(f);
+    if (hf->Flags & PLINC_ENCF_WITHEOD) {
+        if ((hf->Len+1) >= PLINC_ENCBUFSIZE) {
+            r = plinc_enc_flushout(f);
         }
         hf->Buf[hf->Len++] = '>';
     }
 
-    r = r || plinc_hex_flushout(f);
+    r = r || plinc_enc_flushout(f);
 
-    if (hf->Flags & PLINC_HEXF_CLOSETARGET) {
+    if (hf->Flags & PLINC_ENCF_CLOSETARGET) {
         r = r || PlincClose(hf->File);
     }
         
@@ -55,9 +55,9 @@ hex_d_close(PlincFile *f)
 
 
 int
-plinc_hex_flushout(PlincFile *f)
+plinc_enc_flushout(PlincFile *f)
 {
-    PlincEHexFile *hf = (PlincEHexFile *)f;
+    PlincEncFile *hf = (PlincEncFile *)f;
     int r = 0;
 
     if (hf->Len) {
@@ -166,11 +166,11 @@ hex_unread(PlincFile *f, int c)
 static int
 hex_write(PlincFile *f, int c)
 {
-    PlincEHexFile *hf = (PlincEHexFile *)f;
+    PlincEncFile *hf = (PlincEncFile *)f;
     int r;
 
-    if ((hf->Len + 2) >= PLINC_HEXBUFSIZE) {
-        r = plinc_hex_flushout(f);
+    if ((hf->Len + 2) >= PLINC_ENCBUFSIZE) {
+        r = plinc_enc_flushout(f);
         if (r) {
             return r;
         }
@@ -178,16 +178,16 @@ hex_write(PlincFile *f, int c)
 
     hf->Buf[hf->Len++] = hexdigits[(c >> 4) & 0xF];
     hf->Buf[hf->Len++] = hexdigits[c & 0xF];
-    hf->Col += 2;
+    hf->Count += 2;
     
-    if ((hf->Flags & PLINC_HEXF_WITHNLS) && (hf->Col >= 78)) {
-        if ((hf->Len+1) >= PLINC_HEXBUFSIZE) {
-            r = plinc_hex_flushout(f);
+    if ((hf->Flags & PLINC_ENCF_WITHNLS) && (hf->Count >= 78)) {
+        if ((hf->Len+1) >= PLINC_ENCBUFSIZE) {
+            r = plinc_enc_flushout(f);
             if (r) {
                 return r;
             }
         }
-        hf->Col = 0;
+        hf->Count = 0;
         hf->Buf[hf->Len++] = '\n';
     }
     
@@ -199,7 +199,7 @@ hex_write(PlincFile *f, int c)
 static const PlincFileOps hex_e_ops = {
     hex_e_close,                /* close            */
     plinc_io_flushops,          /* readeof          */
-    plinc_hex_flushout,         /* flushout         */
+    plinc_enc_flushout,         /* flushout         */
     plinc_io_flushops,          /* rpurge           */
     plinc_io_flushops,          /* wpurge           */
     plinc_io_bytesavailable,    /* bytesavailable   */
@@ -231,12 +231,12 @@ static const PlincFileOps hex_d_ops = {
 
 
 void
-PlincInitHexEncode(PlincEHexFile *hf, PlincFile *f, PlincUInt flags)
+PlincInitHexEncode(PlincEncFile *hf, PlincFile *f, PlincUInt flags)
 {
     hf->Ops = &hex_e_ops;
     hf->File = f;
     hf->Flags = flags;
-    hf->Len = hf->Col = 0;
+    hf->Len = hf->Count = 0;
 }
 
 
