@@ -245,6 +245,43 @@ op_writestring(PlincInterp *i)
 
 
 static void *
+op_bytesavailable(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    PlincFile *f;
+    PlincInt c;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_FILE) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v)) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v->Val.Ptr);
+            c = f->Ops->bytesavailable(f);
+
+            if (c == PLINC_IOERR) {
+                return i->ioerror;
+            }
+            
+            nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+            nv.Val.Int = c;
+
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, nv);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_flush(PlincInterp *i)
 {
     PlincFile *f;
@@ -379,6 +416,7 @@ static const PlincOp ops[] = {
     {op_readstring,     "readstring"},
     {op_write,          "write"},
     {op_writestring,    "writestring"},
+    {op_bytesavailable, "bytesavailable"},
     {op_flush,          "flush"},
     {op_flushfile,      "flushfile"},
     {op_resetfile,      "resetfile"},
@@ -424,10 +462,19 @@ closed_readorwritestring(PlincFile *f, char *buf, PlincInt l)
 
 
 
+PlincInt
+plinc_io_bytesavailable(PlincFile *f)
+{
+    return -1;
+}
+
+
+
 PlincFileOps plinc_closed_ops = {
     closed_file,                /* close */
     closed_file,                /* flush */
     closed_file,                /* reset */
+    plinc_io_bytesavailable,    /* bytesavailable */
     closed_file,                /* read  */
     closed_readorwritestring,   /* readstring */
     closed_write,               /* write */
