@@ -1,6 +1,9 @@
 #include <plinc/interp.h>
 #include <plinc/file.h>
 
+#include <stdlib.h>
+#include <stdio.h>
+
 
 PlincInt
 PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
@@ -9,7 +12,7 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
     char *p = buf;
     int c, l = 0;
     PlincInt r;
-    
+
     fi = i->StdIn.Val.Ptr;
     fo = i->StdOut.Val.Ptr;
     
@@ -87,4 +90,149 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
     }
 
     return (p - buf);
+}
+
+
+
+PlincInt
+PlincEditStatement(PlincInterp *i, char *buf, PlincUInt len)
+{
+    char *p = buf;
+    PlincInt r, l = len;
+    
+    do {
+        if (!l) {
+            /* no space left? return incomplete statement */
+            return (p - buf);
+        }
+        
+        r = PlincEditLine(i, p, l);
+        if (r < 0) {
+            return r;
+        }
+        p += r; l -= r;
+        if (l) {
+            *p++ = '\n';
+            l--;
+        }
+    } while (!PlincStatementComplete(buf, p - buf));
+    
+    return (p - buf);  
+}
+
+
+
+static char *
+PlincHEXComplete(char *p, char *end)
+{
+    while (p < end) {
+        if (*p++ == '>') {
+            return p;
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+static char *
+PlincB85Complete(char *p, char *end)
+{
+    while (p < end) {
+        if (*p++ == '~') {
+            if (p >= end) {
+                return NULL;
+            } else if (*p++ == '>') {
+                return p;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+static char *
+PlincStringComplete(char *p, char *end)
+{
+    int nest = 1; /* already seen when we get here */
+    
+    while (p < end) {
+        switch (*p++) {
+        case '(':
+            nest++;
+            break;
+            
+        case ')':
+            nest--;
+            if (!nest) {
+                return p;
+            }
+            break;
+
+        case '\\':
+            if (p >= end) {
+                return NULL;
+            } else {
+                p++;
+            }
+            break;
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+int
+PlincStatementComplete(char *buf, PlincUInt len)
+{
+    char *p = buf, *end;
+    int nest = 0;
+    
+    end = p + len;
+    while (p < end) {
+        switch (*p) {
+        case '{':
+            nest++;
+            break;
+        
+        case '}':
+            nest--;
+            break;
+
+        case '(':
+            p++;
+            if (p >= end) {
+                return FALSE;
+            }
+            p = PlincStringComplete(p, end);
+            if (!p) {
+                return FALSE;
+            }
+            continue;
+            
+        case '<':
+            p++;
+            if (p >= end) {
+                return FALSE;
+            }
+            if (*p == '~') {
+                p = PlincB85Complete(p, end);
+            } else {
+                p = PlincHEXComplete(p, end);
+            }
+            if (!p) {
+                return FALSE;
+            }
+            continue;
+        }
+        
+        p++;
+    }
+    
+    return (nest <= 0) ? TRUE : FALSE;
 }

@@ -189,6 +189,8 @@ char *          PlincFmtInt(PlincInt i, char *buf, int len);
 void *          PlincFmtCVS(PlincInterp *i, PlincVal *v, char **buf, int *buflen);
 
 PlincInt        PlincEditLine(PlincInterp *i, char *buf, PlincUInt len);
+PlincInt        PlincEditStatement(PlincInterp *i, char *buf, PlincUInt len);
+int             PlincStatementComplete(char *buf, PlincUInt len);
 
 void           *PlincGo(PlincInterp *i);
 void           *PlincExecStr(PlincInterp *i, const char *s);
