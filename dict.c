@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.14 1999/01/23 01:11:21 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.15 1999/01/24 03:47:42 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -427,25 +427,6 @@ op_currentdict(PlincInterp *i)
 
 
 
-static void *
-op_countdictstack(PlincInterp *i)
-{
-    PlincVal v;
-    
-    if (!PLINC_OPSTACKROOM(i, 1)) {
-        return i->stackoverflow;
-    } else {
-        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-        v.Val.Int = i->DictStack.Len;
-
-        PLINC_OPPUSH(i, v);
-
-        return NULL;
-    }
-}
-
-
-
 static const PlincOp ops[] = {
     {op_dict,           "dict"},
     {op_maxlength,      "maxlength"},
@@ -455,7 +436,6 @@ static const PlincOp ops[] = {
     {op_known,          "known"},
     {op_where,          "where"},
     {op_currentdict,    "currentdict"},
-    {op_countdictstack, "countdictstack"},
 
     {NULL,              NULL}
 };
