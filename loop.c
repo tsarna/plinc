@@ -1,5 +1,3 @@
-/* $Endicor: loop.c,v 1.6 1999/01/27 20:15:36 tsarna Exp $ */
-
 #include <plinc/interp.h>
 #include <stdlib.h>
 
