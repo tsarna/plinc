@@ -30,5 +30,4 @@ struct _PlincStack {
 
 /****************************************/
 
-int     PlincNewStack(PlincStack *s, size_t size);
-void    PlincFreeStack(PlincStack *s);
+int     PlincAllocStack(PlincHeap *h, PlincStack *s, size_t size);

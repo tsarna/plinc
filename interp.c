@@ -6,59 +6,71 @@
 #include "defs.h"
 
 
-PlincInterp *
-PlincNewInterp(size_t heapsize)
+int
+PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
 {
-    PlincInterp *i;
+    /* requires an interpreter with an initialized heap pointer */
+    
     int ok = TRUE;
     
-    i = malloc(sizeof(PlincInterp));
-    if (i) {
-        ok = PlincNewStack(&(i->OpStack), 500);
-        if (ok) {
-            ok = PlincNewStack(&(i->DictStack), 20);
-            i->DictStack.MinLen = 1;
-        }
-        if (ok) {
-            ok = PlincNewStack(&(i->ExecStack), 250);
-        }
-        if (ok) { 
-            i->Heap = PlincNewHeap(heapsize);
-            if (!i->Heap) {
-                ok = FALSE;
-            }
-        }
-        if (ok) {
-            i->ScanLevel = i->SaveLevel = 0;
-            i->RandState = 1;
-            i->GotInterrupt = FALSE;
-            
-            PlincInitErrorNames(i);
-            PlincInitTypeNames(i);
-            PlincInitVals(i);
-            PlincInitStackOps(i);
-            PlincInitTypeOps(i);
-            PlincInitPrintOps(i);
-            PlincInitArithOps(i);
+    ok = PlincAllocStack(i->Heap, &(i->OpStack), 500);
+    if (ok) {
+        ok = PlincAllocStack(i->Heap, &(i->DictStack), 20);
+        i->DictStack.MinLen = 1;
+    }
+    if (ok) {
+        ok = PlincAllocStack(i->Heap, &(i->ExecStack), 250);
+    }
+    if (ok) {
+        i->ScanLevel = i->SaveLevel = 0;
+        i->RandState = 1;
+        i->GotInterrupt = FALSE;
+        
+        PlincInitErrorNames(i);
+        PlincInitTypeNames(i);
+        PlincInitVals(i);
+        PlincInitStackOps(i);
+        PlincInitTypeOps(i);
+        PlincInitPrintOps(i);
+        PlincInitArithOps(i);
 #ifdef WITH_REAL
-            PlincInitRealOps(i);
+        PlincInitRealOps(i);
 #endif
-            PlincInitArrayOps(i);
-            PlincInitStringOps(i);
-            PlincInitDictOps(i);
-            PlincInitRelationalOps(i);
-            PlincInitControlOps(i);
-            PlincInitLoopOps(i);
-            PlincInitFileOps(i);
-            PlincInitPolymorphOps(i);
-            PlincInitVMOps(i);
+        PlincInitArrayOps(i);
+        PlincInitStringOps(i);
+        PlincInitDictOps(i);
+        PlincInitRelationalOps(i);
+        PlincInitControlOps(i);
+        PlincInitLoopOps(i);
+        PlincInitFileOps(i);
+        PlincInitPolymorphOps(i);
+        PlincInitVMOps(i);
             
-            if (PlincExecStr(i, early_defs)) {
-                ok = FALSE;
-            }
+        if (PlincExecStr(i, early_defs)) {
+            ok = FALSE;
         }
     }
 
+    return ok;
+}
+
+
+
+PlincInterp *
+PlincNewInterp(size_t heapsize)
+{
+    PlincInterp *i = NULL;
+    PlincHeap *h;
+    int ok = FALSE;
+    
+    h = PlincNewHeap(heapsize);
+    if (h) {
+        i = PlincAllocHeap(h, sizeof(PlincInterp));
+    }
+    if (i) {
+        i->Heap = h;
+        ok = PlincInitInterp(i, 500, 20, 250);
+    }
     if (!ok) {
         PlincFreeInterp(i);
         i = NULL;
@@ -73,10 +85,6 @@ void
 PlincFreeInterp(PlincInterp *i)
 {
     if (i) {
-        PlincFreeStack(&(i->OpStack));
-        PlincFreeStack(&(i->DictStack));
-        PlincFreeStack(&(i->ExecStack));
-
         PlincFreeHeap(i->Heap);
     }
 }

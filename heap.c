@@ -42,7 +42,7 @@ PlincNewHeap(size_t size)
 
 
 void *
-PlincAllocHeap(PlincHeap *h, size_t len)
+PlincAllocHeapLinked(PlincHeap *h, size_t len)
 {
     PlincHeapHeader *hh = h->HeapHeader;
     char **r = NULL;
@@ -51,6 +51,24 @@ PlincAllocHeap(PlincHeap *h, size_t len)
    
     if (len <= hh->Left) {
         r = ((char **)hh->Top) + 1;
+        hh->Top = ((char *)hh->Top) + len;
+    }
+
+    return (void *)r;
+}
+
+
+
+void *
+PlincAllocHeap(PlincHeap *h, size_t len)
+{
+    PlincHeapHeader *hh = h->HeapHeader;
+    char **r = NULL;
+
+    len = PLINC_ROUND(len);
+   
+    if (len <= hh->Left) {
+        r = ((char **)hh->Top);
         hh->Top = ((char *)hh->Top) + len;
     }
 
@@ -94,7 +112,7 @@ PlincName(PlincHeap *h, char *name, size_t len)
         }
     
         if (!r) {
-            r = PlincAllocHeap(h, len + 1);
+            r = PlincAllocHeapLinked(h, len + 1);
             if (r) {
                 unsigned char *cp;
                

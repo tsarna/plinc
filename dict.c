@@ -10,7 +10,7 @@ PlincNewDict(PlincHeap *h, PlincUInt size)
     PlincDict *r = NULL;
     int i;
 
-    r = PlincAllocHeap(h, sizeof(PlincDict)
+    r = PlincAllocHeapLinked(h, sizeof(PlincDict)
         + sizeof(PlincDictEnt) * (size - 1));
 
     if (r) {

@@ -21,7 +21,7 @@ PlincNewArray(PlincHeap *h, PlincUInt size)
     PlincArray *r = NULL;
     PlincVal *v;
 
-    r = PlincAllocHeap(h, sizeof(PlincArray) + sizeof(PlincVal) * size);
+    r = PlincAllocHeapLinked(h, sizeof(PlincArray) + sizeof(PlincVal) * size);
 
     if (r) {
         PLINC_LINK(r) = hh->Objects;

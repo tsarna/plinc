@@ -28,6 +28,7 @@ struct _PlincHeap {
 void        PlincInitHeapHeader(PlincHeapHeader *mem, size_t size);
 PlincHeap  *PlincNewHeap(size_t size);
 void        PlincFreeHeap(PlincHeap *h);
+void       *PlincAllocHeapLinked(PlincHeap *h, size_t len);
 void       *PlincAllocHeap(PlincHeap *h, size_t len);
 void       *PlincName(PlincHeap *h, char *name, size_t len);
 

@@ -8,11 +8,11 @@ static int counttomark(PlincInterp *i);
 
 
 int
-PlincNewStack(PlincStack *s, size_t size)
+PlincAllocStack(PlincHeap *h, PlincStack *s, size_t size)
 {
     int ok = FALSE;
 
-    s->Stack = malloc(sizeof(PlincVal) * size);
+    s->Stack = PlincAllocHeap(h, sizeof(PlincVal) * size);
     if (s->Stack) {
         ok = TRUE;
 
@@ -24,15 +24,6 @@ PlincNewStack(PlincStack *s, size_t size)
     return ok;
 }
 
-
-
-void
-PlincFreeStack(PlincStack *s)
-{
-    if (s && s->Stack) {
-        free(s->Stack);
-    }
-}
 
 
 static void *
