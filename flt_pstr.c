@@ -5,7 +5,7 @@
 
 
 static int
-pstr_e_close(PlincFile *f)
+pstr_close(PlincFile *f)
 {
     PlincEncFile *ef = (PlincEncFile *)f;
     int r = 0;
@@ -30,113 +30,161 @@ pstr_e_close(PlincFile *f)
 
 
 
-#if 0
 static int
-hex_d_close(PlincFile *f)
+pstr_read(PlincFile *f)
 {
-    PlincDHexFile *ef = (PlincDHexFile *)f;
-    int r = 0;
+    PlincDecodeFile *ef = (PlincDecodeFile *)f;
+    int c, d;
 
-    if (ef->Flags & PLINC_HEXF_CLOSETARGET) {
-        r = r || PlincClose(ef->File);
-    }
-        
-    ef->Ops = &plinc_closed_ops;
-    ef->File = NULL;
-
-    return r;
-}
-
-
-
-static int
-hex_read(PlincFile *f)
-{
-    PlincDHexFile *ef = (PlincDHexFile *)f;
-    int n, c, r = 0, exit;
-
-    if (ef->Flags & PLINC_HEXF_UNREAD) {
-        ef->Flags &= ~PLINC_HEXF_UNREAD;
+    if (ef->Flags & PLINC_DECF_UNREAD) {
+        ef->Flags &= ~PLINC_DECF_UNREAD;
         return ef->Unread;
     } else {
-        for (n = 0; n < 2; n++) {
-            do {
+again:
+        c = PlincRead(ef->File);
+        switch (c) {
+        case PLINC_IOERR:
+        case PLINC_EOF:
+            return PLINC_IOERR;
+            
+        case '(':
+            ef->Count++;
+            return c;
+
+        case ')':
+            ef->Count--;
+            if (ef->Count) {
+                return c;
+            } else {
+                return PLINC_EOF;
+            }
+
+        case '\r':
+            c = PlincRead(ef->File);
+            switch (c) {
+            case PLINC_IOERR:
+            case PLINC_EOF:
+                return PLINC_IOERR;
+
+            case '\n':
+                return c;
+            
+            default:
+                c = PlincUnRead(ef->File, c);
+                if (c) {
+                    return c;
+                } else {
+                    return '\n';
+                }
+            }
+
+        case '\\':
+            c = PlincRead(ef->File);
+            switch (c) {
+            case PLINC_IOERR:
+            case PLINC_EOF:
+                return PLINC_IOERR;
+                
+            case 'n':
+                return '\n';
+            
+            case 'r':
+                return '\r';
+             
+            case 't':
+                return '\t';
+             
+            case 'b':
+                return '\b';
+             
+            case 'f':
+                return '\f';
+             
+            case '\\':
+                return '\\';
+             
+            case '(':
+                return '(';
+             
+            case ')':
+                return ')';
+            
+            case '\n':
+                goto again;
+            
+            case '\r':
                 c = PlincRead(ef->File);
-                exit = FALSE;
                 switch (c) {
                 case PLINC_IOERR:
-                    return c;
-                
                 case PLINC_EOF:
-                    if (n) {
-                        return r;
-                    } else {
-                        return c;
-                    }
+                    return PLINC_IOERR;
 
-                case ' ':   case '\t':  case '\r':
-                case '\n':  case '\f':  case '\0':
-                    continue;
+                case '\n':
+                    goto again;
                 
-                case '0':   case '1':   case '2':   case '3':   case '4':
-                case '5':   case '6':   case '7':   case '8':   case '9':
-                    r |= c - '0';
-                    exit = TRUE;
-                    break;
-                
-                case 'a':   case 'b':   case 'c':
-                case 'd':   case 'e':   case 'f':
-                    r |= c - 'a' + 10;
-                    exit = TRUE;
-                    break;
-                
-                case 'A':   case 'B':   case 'C':
-                case 'D':   case 'E':   case 'F':
-                    r |= c - 'A' + 10;
-                    exit = TRUE;
-                    break;
-                
-                case '>':
-                    if (ef->Flags & PLINC_HEXF_WITHEOD) {
-                        return r;
-                    } else {
-                        continue;
-                    }
-                    
                 default:
-                    if (ef->Flags & PLINC_HEXF_WITHEOD) {
-                        return PLINC_IOERR;
+                    c = PlincUnRead(ef->File, c);
+                    if (c) {
+                        return c;
                     } else {
-                        continue;
+                        goto again;
                     }
                 }
-                if (!n) {
-                    r <<= 4;
+                
+            case '0':   case '1':   case '2':   case '3':
+            case '4':   case '5':   case '6':   case '7':
+                d = c - '0';
+                c = PlincRead(ef->File);
+                switch (c) {
+                case PLINC_IOERR:
+                case PLINC_EOF:
+                    return PLINC_IOERR;
+
+                case '0':   case '1':   case '2':   case '3':
+                case '4':   case '5':   case '6':   case '7':
+                    d <<= 3;
+                    d |= c - '0';
+                    c = PlincRead(ef->File);
+                    switch (c) {
+                    case PLINC_IOERR:
+                    case PLINC_EOF:
+                        return PLINC_IOERR;
+    
+                    case '0':   case '1':   case '2':   case '3':
+                    case '4':   case '5':   case '6':   case '7':
+                        d <<= 3;
+                        d |= c - '0';
+                        return d & 0xFF;
+                
+                    default:
+                        c = PlincUnRead(ef->File, c);
+                        if (c) {
+                            return c;
+                        } else {
+                            return d & 0xFF;
+                        }
+                    }
+                    break;
+                
+                default:
+                    c = PlincUnRead(ef->File, c);
+                    if (c) {
+                        return c;
+                    } else {
+                        return d & 0xFF;
+                    }
                 }
-            } while (!exit);
+                break;
+               
+            default:
+                return c;
+            }
+
+        default:
+            return c;
         }
-        
-        return r;
     }
 }
-
-
-
-static int
-hex_unread(PlincFile *f, int c)
-{
-    PlincDHexFile *ef = (PlincDHexFile *)f;
-
-    if (ef->Flags & PLINC_HEXF_UNREAD) {
-        return PLINC_IOERR;
-    } else {
-        ef->Unread = c;
-        ef->Flags |= PLINC_HEXF_UNREAD;
-
-        return 0;
-    }
-}
-#endif
 
 
 
@@ -204,7 +252,7 @@ pstr_write(PlincFile *f, int c)
 
 
 static const PlincFileOps pstr_e_ops = {
-    pstr_e_close,               /* close            */
+    pstr_close,                 /* close            */
     plinc_io_flushops,          /* readeof          */
     plinc_enc_flushout,         /* flushout         */
     plinc_io_flushops,          /* rpurge           */
@@ -220,22 +268,20 @@ static const PlincFileOps pstr_e_ops = {
 
 
 
-#if 0
-static const PlincFileOps hex_d_ops = {
-    hex_d_close,                /* close            */
+static const PlincFileOps pstr_d_ops = {
+    plinc_dec_close,            /* close            */
     plinc_io_readeof,           /* readeof          */
     plinc_io_flushops,          /* flushout         */
     plinc_io_flushops,          /* rpurge           */
     plinc_io_flushops,          /* wpurge           */
     plinc_io_bytesavailable,    /* bytesavailable   */
-    hex_read,                   /* read             */
+    pstr_read,                  /* read             */
     plinc_io_readstring,        /* readstring       */
     plinc_io_readline,          /* readline         */
-    hex_unread,                 /* unread           */
+    plinc_dec_unread,           /* unread           */
     plinc_ioerr_unreadwrite,    /* write            */
     plinc_ioerr_rdwrstring,     /* writestring      */
 };
-#endif
 
 
 
@@ -255,13 +301,11 @@ PlincInitPStrEncode(PlincEncFile *ef, PlincFile *f, PlincUInt flags)
 
 
 
-#if 0
 void
-PlincInitHexDecode(PlincDHexFile *ef, PlincFile *f, PlincUInt flags)
+PlincInitPStrDecode(PlincDecodeFile *ef, PlincFile *f, PlincUInt flags)
 {
-    ef->Ops = &hex_d_ops;
+    ef->Ops = &pstr_d_ops;
     ef->File = f;
     ef->Flags = flags;
+    ef->Count = 1;
 }
-#endif
-

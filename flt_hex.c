@@ -9,7 +9,7 @@ static const char hexdigits[] = "0123456789abcdef";
 
 
 static int
-hex_e_close(PlincFile *f)
+hex_close(PlincFile *f)
 {
     PlincEncFile *hf = (PlincEncFile *)f;
     int r = 0;
@@ -36,13 +36,13 @@ hex_e_close(PlincFile *f)
 
 
 
-static int
-hex_d_close(PlincFile *f)
+int
+plinc_dec_close(PlincFile *f)
 {
-    PlincDHexFile *hf = (PlincDHexFile *)f;
+    PlincDecodeFile *hf = (PlincDecodeFile *)f;
     int r = 0;
 
-    if (hf->Flags & PLINC_HEXF_CLOSETARGET) {
+    if (hf->Flags & PLINC_DECF_CLOSETARGET) {
         r = r || PlincClose(hf->File);
     }
         
@@ -76,11 +76,11 @@ plinc_enc_flushout(PlincFile *f)
 static int
 hex_read(PlincFile *f)
 {
-    PlincDHexFile *hf = (PlincDHexFile *)f;
+    PlincDecodeFile *hf = (PlincDecodeFile *)f;
     int n, c, r = 0, exit;
 
-    if (hf->Flags & PLINC_HEXF_UNREAD) {
-        hf->Flags &= ~PLINC_HEXF_UNREAD;
+    if (hf->Flags & PLINC_DECF_UNREAD) {
+        hf->Flags &= ~PLINC_DECF_UNREAD;
         return hf->Unread;
     } else {
         for (n = 0; n < 2; n++) {
@@ -121,14 +121,14 @@ hex_read(PlincFile *f)
                     break;
                 
                 case '>':
-                    if (hf->Flags & PLINC_HEXF_WITHEOD) {
+                    if (hf->Flags & PLINC_DECF_WITHEOD) {
                         return r;
                     } else {
                         continue;
                     }
                     
                 default:
-                    if (hf->Flags & PLINC_HEXF_WITHEOD) {
+                    if (hf->Flags & PLINC_DECF_WITHEOD) {
                         return PLINC_IOERR;
                     } else {
                         continue;
@@ -146,16 +146,16 @@ hex_read(PlincFile *f)
 
 
 
-static int
-hex_unread(PlincFile *f, int c)
+int
+plinc_dec_unread(PlincFile *f, int c)
 {
-    PlincDHexFile *hf = (PlincDHexFile *)f;
+    PlincDecodeFile *hf = (PlincDecodeFile *)f;
 
-    if (hf->Flags & PLINC_HEXF_UNREAD) {
+    if (hf->Flags & PLINC_DECF_UNREAD) {
         return PLINC_IOERR;
     } else {
         hf->Unread = c;
-        hf->Flags |= PLINC_HEXF_UNREAD;
+        hf->Flags |= PLINC_DECF_UNREAD;
 
         return 0;
     }
@@ -197,7 +197,7 @@ hex_write(PlincFile *f, int c)
 
 
 static const PlincFileOps hex_e_ops = {
-    hex_e_close,                /* close            */
+    hex_close,                  /* close            */
     plinc_io_flushops,          /* readeof          */
     plinc_enc_flushout,         /* flushout         */
     plinc_io_flushops,          /* rpurge           */
@@ -214,7 +214,7 @@ static const PlincFileOps hex_e_ops = {
 
 
 static const PlincFileOps hex_d_ops = {
-    hex_d_close,                /* close            */
+    plinc_dec_close,            /* close            */
     plinc_io_readeof,           /* readeof          */
     plinc_io_flushops,          /* flushout         */
     plinc_io_flushops,          /* rpurge           */
@@ -223,7 +223,7 @@ static const PlincFileOps hex_d_ops = {
     hex_read,                   /* read             */
     plinc_io_readstring,        /* readstring       */
     plinc_io_readline,          /* readline         */
-    hex_unread,                 /* unread           */
+    plinc_dec_unread,           /* unread           */
     plinc_ioerr_unreadwrite,    /* write            */
     plinc_ioerr_rdwrstring,     /* writestring      */
 };
@@ -242,7 +242,7 @@ PlincInitHexEncode(PlincEncFile *hf, PlincFile *f, PlincUInt flags)
 
 
 void
-PlincInitHexDecode(PlincDHexFile *hf, PlincFile *f, PlincUInt flags)
+PlincInitHexDecode(PlincDecodeFile *hf, PlincFile *f, PlincUInt flags)
 {
     hf->Ops = &hex_d_ops;
     hf->File = f;
