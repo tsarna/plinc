@@ -13,18 +13,17 @@ static const PlincOp ops[]; /* forward */
 void
 pres(PlincInterp *i)
 {
+#if 0
     int j;
 
-#if 0
     fprintf(stderr, "XXX: Exec Stack len %d\n", i->ExecStack.Len);
-#endif
+
     for (j = 0; j < i->ExecStack.Len; j++) {
-#if 0
         fprintf(stderr, "XXX: ");
         PlincReprVal(i, &PLINC_TOPDOWN(i->ExecStack, j));
         fprintf(stderr, "\n");
-#endif
     }
+#endif
 }
 
 void *
@@ -178,14 +177,14 @@ PushVal(PlincInterp *i, PlincVal *v)
     if (PLINC_IS_ARRAY(*v) || PLINC_LIT(*v)) {
         if (PLINC_OPSTACKROOM(i, 1)) {
             PLINC_OPPUSH(i, *v);
-            return i;
+            return NULL;
         } else {
             return i->stackoverflow;
         }
     } else {
         if (PLINC_STACKROOM(i->ExecStack, 1)) {
             PLINC_PUSH(i->ExecStack, *v);
-            return i;
+            return NULL;
         } else {
             return i->execstackoverflow;
         }
@@ -219,6 +218,9 @@ pres(i);
                 r = NULL;
             } else if (!r) {
                 r = PushVal(i, &nv);
+                if (!r) {
+                    continue;
+                }
             }
             break;
 
@@ -229,6 +231,9 @@ pres(i);
                 r = NULL;
             } else if (!r) {
                 r = PushVal(i, &nv);
+                if (!r) {
+                    continue;
+                }
             }
             break;
 
@@ -245,6 +250,9 @@ pres(i);
                     PLINC_XPOP(i);
                 }
                 r = PushVal(i, &nv);
+                if (!r) {
+                    continue;
+                }
             }
             break;
 
@@ -262,6 +270,7 @@ pres(i);
 	case PLINC_TYPE_OP:
 	    r = v->Val.Op->Func(i);
 	    if (r == i) {
+	        r = NULL;
 	        continue;
 	    }
 	    break;
@@ -277,7 +286,6 @@ pres(i);
         default:
             if (PLINC_OPSTACKROOM(i, 1)) {
                 PLINC_OPPUSH(i, *v);
-                PLINC_XPOP(i);
             } else {
                 r = i->stackoverflow;
             }
@@ -285,13 +293,22 @@ pres(i);
             break;
         }
 
-        if (r == i) {
-            r = NULL;
-            continue;
-        }
-        
         while (r) {
-            return r;
+            if (r == i->stackoverflow) {
+                /* XXX copy stack into an array, clear stack, push
+                   array */
+            }
+            
+            nv.Flags = PLINC_TYPE_NAME;
+            nv.Val.Ptr = r;
+            r = PlincGetDict(i, i->errordict, &nv, &nv);
+            if (r == i->undefined) {
+                return r; /* XXX */
+            }
+            
+            if (!r) {
+                /* XXX pop x onto op, push nv on x */
+            }
         }
 
         PLINC_XPOP(i);
