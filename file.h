@@ -9,8 +9,13 @@ typedef struct _PlincFileOps PlincFileOps;
 typedef struct _PlincFile PlincFile;
 
 struct _PlincFileOps {
-    int (*read)(PlincFile *f);
-    int (*write)(PlincFile *f, int c);
+    int         (*close)(PlincFile *f);
+    int         (*flush)(PlincFile *f);
+    int         (*reset)(PlincFile *f);
+    int         (*read)(PlincFile *f);
+    PlincInt    (*readstring)(PlincFile *f, char *buf, PlincInt l);
+    int         (*write)(PlincFile *f, int c);
+    PlincInt    (*writestring)(PlincFile *f, char *buf, PlincInt l);
 };
 
 struct _PlincFile {
@@ -20,5 +25,7 @@ struct _PlincFile {
     /* Other data here in "subclasses" */
 };
 
+
+extern PlincFileOps plinc_closed_ops;
 
 #endif /* PLINC_IO_H */

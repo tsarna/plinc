@@ -55,6 +55,32 @@ op_file(PlincInterp *i)
 
 
 static void *
+op_closefile(PlincInterp *i)
+{
+    PlincFile *f;
+    PlincVal *v;
+        
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+
+        if (PLINC_TYPE(*v) != PLINC_TYPE_FILE){
+            return i->typecheck;
+        } else {
+            f = (PlincFile *)(v->Val.Ptr);
+            if ((f->Ops->close(f)) == PLINC_IOERR) {
+                return i->ioerror;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+static void *
 op_read(PlincInterp *i)
 {
     PlincVal *v, nv;
@@ -106,6 +132,51 @@ op_read(PlincInterp *i)
 
 
 static void *
+op_readstring(PlincInterp *i)
+{
+    PlincVal *v1, *v2, nv;
+    PlincFile *f;
+    PlincInt r, s;
+     
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE) 
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_WRITE(*v2)) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v1->Val.Ptr);
+            s = PLINC_SIZE(*v2);
+            r = f->Ops->readstring(f, v2->Val.Ptr, s);
+            if (r == PLINC_IOERR) {
+                return i->ioerror;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+
+                nv = *v2;
+                nv.Flags &= ~PLINC_SIZE_MASK;
+                nv.Flags |= r;
+                PLINC_OPPUSH(i, nv);
+
+                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                nv.Val.Int = (r == s) ? TRUE : FALSE;
+                PLINC_OPPUSH(i, nv);
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_write(PlincInterp *i)
 {
     PlincVal *v1, *v2;
@@ -137,12 +208,184 @@ op_write(PlincInterp *i)
 
 
 
-static const PlincOp ops[] = {
-    {op_file,       "file"},
-    {op_read,       "read"},
-    {op_write,      "write"},
+static void *
+op_writestring(PlincInterp *i)
+{
+    PlincVal *v1, *v2;
+    PlincFile *f;
+    int c;
+     
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE)
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if ((!PLINC_CAN_WRITE(*v1)) || (!PLINC_CAN_READ(*v2))) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v1->Val.Ptr);
+            c = f->Ops->writestring(f, v2->Val.Ptr, PLINC_SIZE(*v2));
 
-    {NULL,          NULL}
+            if (c == PLINC_IOERR) {
+                return i->ioerror;
+            }
+
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
+op_flush(PlincInterp *i)
+{
+    PlincFile *f;
+    
+    f = (PlincFile *)(i->StdOut.Val.Ptr);
+
+    return ((f->Ops->flush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+}
+
+
+
+static void *
+op_flushfile(PlincInterp *i)
+{
+    PlincVal *v;
+    PlincFile *f;
+    void *r = NULL;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_FILE) {
+            return i->typecheck;
+        } else {
+            f = (PlincFile *)(v->Val.Ptr);
+            r = ((f->Ops->flush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return r;
+}
+
+
+
+static void *
+op_resetfile(PlincInterp *i)
+{
+    PlincVal *v;
+    PlincFile *f;
+    void *r = NULL;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_FILE) {
+            return i->typecheck;
+        } else {
+            f = (PlincFile *)(v->Val.Ptr);
+            r = ((f->Ops->reset(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return r;
+}
+
+
+
+static void *
+op_status(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    PlincFile *f;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_FILE) {
+            return i->typecheck;
+        } else {
+            f = (PlincFile *)(v->Val.Ptr);
+
+            nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+            nv.Val.Int = (f->Ops == &plinc_closed_ops) ? FALSE : TRUE;
+
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, nv);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
+op_print(PlincInterp *i)
+{
+    PlincVal *v;
+    PlincFile *f;
+    int c;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_STRING) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v)) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(i->StdOut.Val.Ptr);
+            c = f->Ops->writestring(f, v->Val.Ptr, PLINC_SIZE(*v));
+
+            if (c == PLINC_IOERR) {
+                return i->ioerror;
+            }
+
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static const PlincOp ops[] = {
+    {op_file,           "file"},
+    {op_closefile,      "closefile"},
+    {op_read,           "read"},
+    {op_readstring,     "readstring"},
+    {op_write,          "write"},
+    {op_writestring,    "writestring"},
+    {op_flush,          "flush"},
+    {op_flushfile,      "flushfile"},
+    {op_resetfile,      "resetfile"},
+    {op_status,         "status"},
+    {op_print,          "print"},
+
+    {NULL,              NULL}
 };
 
 
@@ -153,3 +396,40 @@ PlincInitFileOps(PlincInterp *i)
     PlincInitOps(i, ops);
 }
 
+
+
+static int
+closed_file(PlincFile *f)
+{
+    /* same call signature for read, close, flush, reset */
+    
+    return PLINC_IOERR;
+}
+
+
+
+static int
+closed_write(PlincFile *f, int c)
+{
+    return PLINC_IOERR;
+}
+
+
+
+static PlincInt
+closed_readorwritestring(PlincFile *f, char *buf, PlincInt l)
+{
+    return PLINC_IOERR;
+}
+
+
+
+PlincFileOps plinc_closed_ops = {
+    closed_file,                /* close */
+    closed_file,                /* flush */
+    closed_file,                /* reset */
+    closed_file,                /* read  */
+    closed_readorwritestring,   /* readstring */
+    closed_write,               /* write */
+    closed_readorwritestring,   /* writestring */
+};
