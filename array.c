@@ -7,29 +7,18 @@
 #include <string.h>
 
 
-typedef struct _PlincArray PlincArray;
-struct _PlincArray {
-    PlincUInt   Flags;
-};
-
-
 
 void *
 PlincNewArray(PlincHeap *h, PlincUInt size)
 {
-    PlincHeapHeader *hh = h->HeapHeader;
-    PlincArray *r = NULL;
-    PlincVal *v;
+    PlincVal *v, *r = NULL;
 
-    r = PlincAllocHeapLinked(h, sizeof(PlincArray) + sizeof(PlincVal) * size);
+    r = PlincAllocHeap(h, sizeof(PlincVal) * size);
 
     if (r) {
-        PLINC_LINK(r) = hh->Objects;
-        hh->Objects = r;
-
         r->Flags = PLINC_ATTR_LIT | PLINC_TYPE_ARRAY | size;
 
-        v = (PlincVal *)(++r);
+        v = r;
 
         while (size) {
             v->Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
@@ -66,6 +55,18 @@ PlincArrayVal(PlincInterp *i, PlincVal *a, PlincVal *ret)
 
 
                 
+void *
+PlincPutArray(PlincInterp *i, PlincVal *a, PlincUInt ix, PlincVal *v)
+{
+    PLINC_INCREF_VAL(*v);
+    PLINC_DECREF_VAL(a[ix]);
+    a[ix] = *v;
+    
+    return NULL;
+}
+
+
+
 static void *
 op_array(PlincInterp *i)
 {
@@ -163,7 +164,7 @@ op_astore(PlincInterp *i)
                 if (!PLINC_OPSTACKHAS(i, l + 1)) {
                     return i->stackunderflow;
                 } else if (l) {
-                    /* XXX COW the array here... */
+                    /* XXX ARRAYPUT */
 
                     memcpy(v->Val.Ptr, &PLINC_OPTOPDOWN(i, l),
                         sizeof(PlincVal) * l);
