@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.9 1999/01/18 21:16:20 tsarna Exp $ */
+/* $Endicor: types.h,v 1.10 1999/01/19 23:10:35 tsarna Exp $ */
 
 #include <sys/types.h>
 
@@ -19,8 +19,9 @@
 #define PLINC_ROUND(x)      (((x) + PLINC_ALIGN - 1) & ~(PLINC_ALIGN - 1))
 #define PLINC_LINK(o)       (*(((void **)(o)) - 1))
 
-typedef int32_t     PlincInt;
-typedef u_int32_t   PlincUInt;
+typedef long                PlincInt;
+typedef unsigned long       PlincUInt;
+typedef u_int32_t           PlincUInt32;
 
 #define PLINC_ATTR_LIT      0x80000000
 #define PLINC_ATTR_NOREAD   0x40000000
@@ -67,7 +68,7 @@ struct _PlincInterp;
  
 typedef struct _PlincVal PlincVal;
 struct _PlincVal {
-    PlincUInt               Flags;
+    PlincUInt32             Flags;
     union {
         void               *Ptr;
         PlincInt            Int;

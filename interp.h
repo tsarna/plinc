@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.15 1999/01/20 23:14:23 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.16 1999/01/21 18:09:26 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -22,9 +22,9 @@ struct _PlincDictEnt {
 
 typedef struct _PlincDict PlincDict;
 struct _PlincDict {
-    PlincUInt       Flags;
-    PlincUInt       Len;
-    PlincUInt       MaxLen;
+    PlincUInt32     Flags;
+    PlincUInt32     Len;
+    PlincUInt32     MaxLen;
     PlincDictEnt    Vals[1];
 };
 

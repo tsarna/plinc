@@ -1,13 +1,13 @@
-/* $Endicor: stack.h,v 1.3 1999/01/14 05:02:15 tsarna Exp tsarna $ */
+/* $Endicor: stack.h,v 1.5 1999/01/17 04:58:16 tsarna Exp $ */
 
 #include <plinc/types.h>
 
 typedef struct _PlincStack PlincStack;
 struct _PlincStack {
     PlincVal       *Stack;
-    PlincUInt       Len;
-    PlincUInt       MinLen;
-    PlincUInt       MaxLen;
+    PlincUInt32     Len;
+    PlincUInt32     MinLen;
+    PlincUInt32     MaxLen;
 };
 
 

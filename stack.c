@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.8 1999/01/20 20:16:56 tsarna Exp tsarna $ */
+/* $Endicor: stack.c,v 1.9 1999/01/20 20:30:12 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -284,7 +284,7 @@ op_cleartomark(PlincInterp *i)
 static void *
 setflags(PlincInterp *i, PlincUInt set, PlincUInt clear)
 {
-    PlincUInt *f;
+    PlincUInt32 *f;
     PlincVal *v;
 
     if (!PLINC_OPSTACKHAS(i, 1)) {
