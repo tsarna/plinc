@@ -223,6 +223,12 @@ PlincInitVals(PlincInterp *i)
     name = DEFNAME("version");
     PlincPutDictName(i, i->systemdict, name, &v);
 
+    /* revision */
+    v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+    v.Val.Int = PLINC_REVISION;
+    name = DEFNAME("revision");
+    PlincPutDictName(i, i->systemdict, name, &v);
+
     /* define some names */
     i->RightBracket = DEFNAME("]");
     i->LeftBrace = DEFNAME("{");
