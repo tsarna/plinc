@@ -66,6 +66,7 @@ typedef float               PlincReal;
 #define PLINC_IS_INT(x)     (PLINC_TYPE(x) == PLINC_TYPE_INT)
 #define PLINC_IS_REAL(x)    (PLINC_TYPE(x) == PLINC_TYPE_REAL)
 #define PLINC_IS_STRING(x)  (PLINC_TYPE(x) == PLINC_TYPE_STRING)
+#define PLINC_IS_NAME(x)    (PLINC_TYPE(x) == PLINC_TYPE_NAME)
 #define PLINC_IS_FILE(x)    (PLINC_TYPE(x) == PLINC_TYPE_FILE)
 #define PLINC_IS_NULL(x)    (PLINC_TYPE(x) == PLINC_TYPE_NULL)
 #define PLINC_IS_MARK(x)    (PLINC_TYPE(x) == PLINC_TYPE_MARK)
