@@ -122,7 +122,13 @@ hex_read(PlincFile *f)
                 
                 case '>':
                     if (hf->Flags & PLINC_DECF_WITHEOD) {
-                        return r;
+                        if (n) {
+                            hf->Flags |= PLINC_DECF_UNREAD;
+                            hf->Unread = PLINC_EOF;
+                            return r;
+                        } else {
+                            return PLINC_EOF;
+                        }
                     } else {
                         continue;
                     }

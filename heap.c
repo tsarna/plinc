@@ -52,6 +52,7 @@ PlincAllocHeapLinked(PlincHeap *h, size_t len)
     if (len <= hh->Left) {
         r = ((char **)hh->Top) + 1;
         hh->Top = ((char *)hh->Top) + len;
+        hh->Left -= len;
     }
 
     return (void *)r;
@@ -70,6 +71,7 @@ PlincAllocHeap(PlincHeap *h, size_t len)
     if (len <= hh->Left) {
         r = ((char **)hh->Top);
         hh->Top = ((char *)hh->Top) + len;
+        hh->Left -= len;
     }
 
     return (void *)r;
@@ -127,3 +129,41 @@ PlincName(PlincHeap *h, char *name, size_t len)
 
     return r;
 }
+
+
+
+void *
+PlincBorrowMemory(PlincHeap *h, PlincUInt *len)
+{
+    PlincHeapHeader *hh = h->HeapHeader;
+    
+    *len = hh->Left;
+
+    return hh->Top;
+}
+
+
+
+void
+PlincBorrowAbort(PlincHeap *h, void *p, PlincUInt len)
+{
+    /* XXX */
+}
+
+
+void *
+PlincBorrowFinalize(PlincHeap *h, void *p, PlincUInt borrowed,
+               PlincUInt used)
+{
+    PlincHeapHeader *hh = h->HeapHeader;
+    void *r;
+    
+    used = PLINC_ROUND(used);
+   
+    r = hh->Top;
+    hh->Top = ((char *)hh->Top) + used;
+    hh->Left -= used;
+
+    return r;
+}
+                
