@@ -97,7 +97,7 @@ PlincName(PlincHeap *h, char *name, size_t len)
     unsigned char *n, *r = NULL;
     size_t nlen;
     
-    if (len <= PLINC_NAME_MAX) {
+    if (len <= PLINC_MAXNAMELEN) {
         n = hh->Names;
         while (n) {
             nlen = *n;
