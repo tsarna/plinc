@@ -177,6 +177,53 @@ op_readstring(PlincInterp *i)
 
 
 static void *
+op_readline(PlincInterp *i)
+{
+    PlincVal *v1, *v2, nv;
+    PlincFile *f;
+    PlincInt r, s;
+     
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE) 
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_WRITE(*v2)) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v1->Val.Ptr);
+            s = PLINC_SIZE(*v2);
+            r = f->Ops->readline(f, v2->Val.Ptr, &s);
+            if (r == PLINC_IOERR) {
+                return i->ioerror;
+            } else if (r == FALSE) {
+                return i->rangecheck;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+
+                nv = *v2;
+                nv.Flags &= ~PLINC_SIZE_MASK;
+                nv.Flags |= s;
+                PLINC_OPPUSH(i, nv);
+
+                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                nv.Val.Int = (r == TRUE) ? TRUE : FALSE;
+                PLINC_OPPUSH(i, nv);
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_write(PlincInterp *i)
 {
     PlincVal *v1, *v2;
@@ -414,6 +461,7 @@ static const PlincOp ops[] = {
     {op_closefile,      "closefile"},
     {op_read,           "read"},
     {op_readstring,     "readstring"},
+    {op_readline,       "readline"},
     {op_write,          "write"},
     {op_writestring,    "writestring"},
     {op_bytesavailable, "bytesavailable"},
@@ -462,6 +510,14 @@ closed_readorwritestring(PlincFile *f, char *buf, PlincInt l)
 
 
 
+static PlincInt
+closed_readline(PlincFile *f, char *buf, PlincInt *l)
+{
+    return PLINC_IOERR;
+}
+
+
+
 PlincFileOps plinc_closed_ops = {
     closed_file,                /* close */
     closed_file,                /* flush */
@@ -469,6 +525,7 @@ PlincFileOps plinc_closed_ops = {
     plinc_io_bytesavailable,    /* bytesavailable */
     closed_file,                /* read  */
     closed_readorwritestring,   /* readstring */
+    closed_readline,            /* readline */
     closed_writeorunread,       /* unread */
     closed_writeorunread,       /* write */
     closed_readorwritestring,   /* writestring */

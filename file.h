@@ -15,6 +15,7 @@ struct _PlincFileOps {
     PlincInt    (*bytesavailable)(PlincFile *f);
     int         (*read)(PlincFile *f);
     PlincInt    (*readstring)(PlincFile *f, char *buf, PlincInt l);
+    PlincInt    (*readline)(PlincFile *f, char *buf, PlincInt *l);
     int         (*unread)(PlincFile *f, int c);
     int         (*write)(PlincFile *f, int c);
     PlincInt    (*writestring)(PlincFile *f, char *buf, PlincInt l);
@@ -32,6 +33,7 @@ extern PlincFileOps plinc_closed_ops;
 
 PlincInt    plinc_io_bytesavailable(PlincFile *f);
 PlincInt    plinc_io_readstring(PlincFile *f, char *buf, PlincInt l);
+PlincInt    plinc_io_readline(PlincFile *f, char *buf, PlincInt *l);
 PlincInt    plinc_io_writestring(PlincFile *f, char *buf, PlincInt l);
 
 

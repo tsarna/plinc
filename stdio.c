@@ -132,6 +132,7 @@ PlincFileOps stdio_ops = {
     plinc_io_bytesavailable,
     stdio_read,
     stdio_readstring,
+    plinc_io_readline,
     stdio_unread,
     stdio_write,
     stdio_writestring,
