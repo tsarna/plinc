@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.9 1999/01/27 03:16:56 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.10 1999/01/27 23:17:19 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -170,8 +170,22 @@ op_put(PlincInterp *i)
                 return i->rangecheck;
             } else {
                 ((char *)(v2->Val.Ptr))[v1->Val.Int] = v0->Val.Int;
+
+                r = NULL;
+            }
+        } else if (PLINC_TYPE(*v2) == PLINC_TYPE_ARRAY) {
+            if (!PLINC_CAN_WRITE(*v2)) {
+                return i->invalidaccess;
+            } else if (PLINC_TYPE(*v1) != PLINC_TYPE_INT) {
+                return i->typecheck;
+            } else if ((v1->Val.Int < 0) || (v1->Val.Int >= PLINC_SIZE(*v2))) {
+                return i->rangecheck;
+            } else {
+                PLINC_INCREF_VAL(*v0);
+
+                ((PlincVal *)(v2->Val.Ptr))[v1->Val.Int] = *v0;
                 
-                return NULL;
+                r = NULL;
             }
         } else {
             return i->typecheck;
