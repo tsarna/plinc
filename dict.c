@@ -1,12 +1,10 @@
-/* $Endicor: dict.c,v 1.9 1999/01/18 22:05:42 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.10 1999/01/19 23:10:35 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
 #include <stdio.h> /*XXX*/
-
-#define min(a, b)  ((a) < (b) ? (a) : (b))
 
 
 void *
@@ -78,6 +76,7 @@ PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
         if (PLINC_TYPE(*key) == PLINC_TYPE_STRING) {
             v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr,
                 min(PLINC_SIZE(*key), PLINC_MAXNAMELEN));
+
             if (v.Val.Ptr) {
                 v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
                 key = &v;
@@ -86,8 +85,6 @@ PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
             }
         }
 
-        /* XXX convert strings to names here */
-        
         j = PlincHashVal(key) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key) && 
@@ -133,11 +130,22 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
 {
     void *r = i->undefined;
     PlincUInt j, oj;
+    PlincVal v;
 
     if (!PLINC_CAN_READ(*d)) {
         r = i->invalidaccess;
     } else {
-        /* XXX convert strng key to literal name */
+        if (PLINC_TYPE(*key) == PLINC_TYPE_STRING) {
+            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr,
+                min(PLINC_SIZE(*key), PLINC_MAXNAMELEN));
+
+            if (v.Val.Ptr) {
+                v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
+                key = &v;
+            } else {
+                return i->VMerror;
+            }
+        }
 
         oj = j = PlincHashVal(key) % (d->MaxLen);
 
@@ -184,6 +192,41 @@ PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val)
 
 
 static void *
+op_dict(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    PlincDict *d;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_INT) {
+            return i->typecheck;
+        } else if (v->Val.Int > PLINC_MAXLEN) {
+            return i->limitcheck;
+        } else {
+            d = PlincNewDict(i->Heap, v->Val.Int);
+            
+            if (d) {
+                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_DICT | v->Val.Int;
+                nv.Val.Ptr = d;
+                
+                PLINC_OPPOP(i);
+                PLINC_OPPUSH(i, nv);
+                
+                return NULL;
+            } else {
+                return i->VMerror;
+            }
+        }
+    }
+}
+
+
+
+static void *
 op_maxlength(PlincInterp *i)
 {
     PlincVal *v, nv;
@@ -198,12 +241,12 @@ op_maxlength(PlincInterp *i)
             d = (PlincDict *)(v->Val.Ptr);
             
             if (PLINC_CAN_READ(*d)) {
-                return i->invalidaccess;
-            } else {
                 nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
                 nv.Val.Int = d->MaxLen;
                 
                 PLINC_OPPUSH(i, nv);
+            } else {
+                return i->invalidaccess;
             }
         } else {
             return i->typecheck;
@@ -321,6 +364,7 @@ op_end(PlincInterp *i)
 
 
 static PlincOp ops[] = {
+    {"dict",            op_dict},
     {"maxlength",       op_maxlength},
     {"begin",           op_begin},
     {"end",             op_end},

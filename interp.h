@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.11 1999/01/18 22:05:42 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.12 1999/01/19 23:10:35 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -6,6 +6,11 @@
 
 #include <plinc/heap.h>
 #include <plinc/stack.h>
+
+
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 
 typedef struct _PlincDictEnt PlincDictEnt;
@@ -46,7 +51,6 @@ struct _PlincInterp {
     
     /* Dicts */
     PlincDict      *systemdict;
-    PlincDict      *userdict;
     PlincDict      *errordict;
     
     /* errors */

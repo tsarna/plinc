@@ -1,9 +1,11 @@
-/* $Endicor: interp.c,v 1.10 1999/01/18 21:16:20 tsarna Exp $ */
+/* $Endicor: interp.c,v 1.11 1999/01/19 23:10:35 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
 #include <stdio.h> /*XXX*/
+
+#include "defs.h"
 
 
 PlincInterp *
@@ -44,8 +46,11 @@ PlincNewInterp(size_t heapsize)
             PlincInitControlOps(i);
             PlincInitPolymorphOps(i);
             PlincInitVMOps(i);
+            
+            if (PlincExecStr(i, early_defs)) {
+                ok = FALSE;
+            }
         }
-                    
     }
 
     if (!ok) {
@@ -123,7 +128,6 @@ PlincInitVals(PlincInterp *i)
     i->DictStack.MinLen = 1;
 
     DEFDICT(errordict, 50);
-    DEFDICT(userdict, 200);
 
     /* mark, .mark */
     v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;

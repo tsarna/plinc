@@ -1,4 +1,4 @@
-/* $Endicor: array.c,v 1.5 1999/01/18 22:05:42 tsarna Exp tsarna $ */
+/* $Endicor: string.c,v 1.1 1999/01/19 23:10:35 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
@@ -73,8 +73,40 @@ op_string(PlincInterp *i)
 
 
 
+static void *
+op_cvn(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_STRING) {
+            return i->typecheck;
+        } else {
+            nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
+            nv.Val.Ptr = PlincName(i->Heap, v->Val.Ptr,
+                min(PLINC_SIZE(*v), PLINC_MAXNAMELEN));
+
+            if (nv.Val.Ptr) {
+                PLINC_OPPOP(i);
+                PLINC_OPPUSH(i, nv);
+                
+                return NULL;
+            } else {
+                return i->VMerror;
+            }
+        }
+    }
+}
+
+
+
 static PlincOp ops[] = {
     {"string",      op_string},
+    {"cvn",         op_cvn},
 
     {NULL,          NULL}
 };
