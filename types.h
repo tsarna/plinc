@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.10 1999/01/19 23:10:35 tsarna Exp $ */
+/* $Endicor: types.h,v 1.11 1999/01/22 18:59:10 tsarna Exp $ */
 
 #include <sys/types.h>
 
@@ -56,7 +56,6 @@ typedef u_int32_t           PlincUInt32;
 #define PLINC_TYPE_FILE     0x00800000
 #define PLINC_TYPE_MARK     0x00900000
 #define PLINC_TYPE_NULL     0x00A00000
-#define PLINC_TYPE_INVALID  0x00A00000 /* XXX ??? */
 #define PLINC_TYPE_SAVE     0x00B00000
 #define PLINC_TYPE_FONTID   0x00C00000
 

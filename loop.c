@@ -1,4 +1,4 @@
-/* $Endicor: loop.c,v 1.4 1999/01/27 03:16:56 tsarna Exp tsarna $ */
+/* $Endicor: loop.c,v 1.5 1999/01/27 03:49:44 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 #include <stdlib.h>
@@ -19,6 +19,7 @@ static void *
 op_dot_looper(PlincInterp *i)
 {
     PlincVal *l, *n, *x, v;
+    PlincDict *d;
     
     l = &PLINC_TOPDOWN(i->ExecStack, 0);
 
@@ -79,6 +80,29 @@ op_dot_looper(PlincInterp *i)
                     PLINC_POP(i->ExecStack); /* count */
                     PLINC_POP(i->ExecStack); /* object */
                 }
+            } else if (PLINC_TYPE(*n) == PLINC_TYPE_DICT) {
+                d = n->Val.Ptr;
+                
+                if (!PLINC_OPSTACKROOM(i, 2)) {
+                    return i->stackoverflow;
+                }
+
+                while (x->Val.Int < d->MaxLen) {
+                    if (PLINC_IS_NULL(d->Vals[x->Val.Int].Key)) {
+                        x->Val.Int++;
+                    } else {
+                        PLINC_OPPUSH(i, d->Vals[x->Val.Int].Key);
+                        PLINC_OPPUSH(i, d->Vals[x->Val.Int++].Val);
+                        PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
+                    
+                        return i;
+                    }
+                }
+
+                PLINC_POP(i->ExecStack); /* .looper */
+                PLINC_POP(i->ExecStack); /* proc */
+                PLINC_POP(i->ExecStack); /* count */
+                PLINC_POP(i->ExecStack); /* object */
             }
         }
     }

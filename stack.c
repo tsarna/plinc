@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.12 1999/01/25 04:35:58 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.13 1999/01/26 04:27:04 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -306,82 +306,6 @@ op_cleartomark(PlincInterp *i)
 
 
 static void *
-setflags(PlincInterp *i, PlincUInt set, PlincUInt clear)
-{
-    PlincUInt32 *f;
-    PlincVal *v;
-
-    if (!PLINC_OPSTACKHAS(i, 1)) {
-        return i->stackunderflow;
-    } else {
-        v = &PLINC_OPTOPDOWN(i, 0);
-
-        if (PLINC_CAN_WRITE(*v)) {
-            f = &(v->Flags);
-            if (PLINC_TYPE(*v) == PLINC_TYPE_DICT) {
-                f = &(((PlincDict *)(v->Val.Ptr))->Flags);
-            }
-
-            *f &= (~clear);
-            *f |= set;
-
-            return NULL;
-        } else {
-            return i->invalidaccess;
-        }
-    }
-}
-
-
-
-static void *
-op_cvlit(PlincInterp *i)
-{
-    return setflags(i, PLINC_ATTR_LIT, 0);
-}
-
-
-
-static void *
-op_cvx(PlincInterp *i)
-{
-    return setflags(i, 0, PLINC_ATTR_LIT);
-}
-
-
-
-static void *
-op_dot_doexec(PlincInterp *i)
-{
-    return setflags(i, PLINC_ATTR_DOEXEC, PLINC_ATTR_LIT);
-}
-
-
-
-static void *
-op_xcheck(PlincInterp *i)
-{
-    PlincVal v;
-    if (!PLINC_OPSTACKHAS(i, 1)) {
-        return i->stackunderflow;
-    } else {
-        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
-        if (PLINC_EXEC(PLINC_OPTOPDOWN(i, 0))) {
-            v.Val.Int = 1;
-        } else {
-            v.Val.Int = 0;
-        }
-        
-        PLINC_OPPOP(i);
-        PLINC_OPPUSH(i, v);
-
-        return NULL;
-    }
-}
-
-
-
-static void *
 copystack(PlincInterp *i, PlincStack *s)
 {
     PlincVal *v;
@@ -443,10 +367,6 @@ static const PlincOp ops[] = {
     {op_counttomark,    "counttomark"},
     {op_dictstack,      "dictstack"},
     {op_execstack,      "execstack"},
-    {op_cvlit,          "cvlit"},
-    {op_cvx,            "cvx"},
-    {op_dot_doexec,     ".doexec"},
-    {op_xcheck,         "xcheck"},
 
     {NULL,          NULL}
 };

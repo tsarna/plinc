@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.22 1999/01/27 03:16:56 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.23 1999/01/27 03:49:44 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -36,8 +36,10 @@ PlincNewInterp(size_t heapsize)
             i->GotInterrupt = FALSE;
             
             PlincInitErrorNames(i);
+            PlincInitTypeNames(i);
             PlincInitVals(i);
             PlincInitStackOps(i);
+            PlincInitTypeOps(i);
             PlincInitPrintOps(i);
             PlincInitArithOps(i);
 #ifdef WITH_REAL
@@ -116,6 +118,30 @@ PlincInitErrorNames(PlincInterp *i)
     DEFERR(unmatchedmark);
     DEFERR(unregistered);
     DEFERR(VMerror);
+}
+
+
+
+void
+PlincInitTypeNames(PlincInterp *i)
+{
+    PlincHeap *h = i->Heap;
+    
+#define DEFTYPENAME(x) i->x = DEFNAME(#x);
+
+    DEFTYPENAME(integertype);
+    DEFTYPENAME(realtype);
+    DEFTYPENAME(booleantype);
+    DEFTYPENAME(arraytype);
+    DEFTYPENAME(stringtype);
+    DEFTYPENAME(nametype);
+    DEFTYPENAME(dicttype);
+    DEFTYPENAME(operatortype);
+    DEFTYPENAME(filetype);
+    DEFTYPENAME(marktype);
+    DEFTYPENAME(nulltype);
+    DEFTYPENAME(savetype);
+    DEFTYPENAME(fonttype);
 }
 
 

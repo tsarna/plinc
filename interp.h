@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.23 1999/01/27 03:16:56 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.24 1999/01/27 03:49:44 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -69,6 +69,7 @@ struct _PlincInterp {
     void           *invalidstop;
     void           *invalidfileaccess;
 
+    void           *invalidrestore;
     void           *ioerror;
     void           *limitcheck;
     void           *nocurrentpoint;
@@ -85,6 +86,21 @@ struct _PlincInterp {
     void           *unregistered;
     void           *VMerror;
 
+    /* typenames */
+    void           *integertype;
+    void           *realtype;
+    void           *booleantype;
+    void           *arraytype;
+    void           *stringtype;
+    void           *nametype;
+    void           *dicttype;
+    void           *operatortype;
+    void           *filetype;
+    void           *marktype;
+    void           *nulltype;
+    void           *savetype;
+    void           *fonttype;
+   
     /* misc state */
     int             GotInterrupt;    
 };
@@ -102,6 +118,7 @@ struct _PlincOp {
 PlincInterp    *PlincNewInterp(size_t heap);
 void            PlincFreeInterp(PlincInterp *i);
 void            PlincInitErrorNames(PlincInterp *i);
+void            PlincInitTypeNames(PlincInterp *i);
 void            PlincInitVals(PlincInterp *i);
 
 void           *PlincNewArray(PlincHeap *h, PlincUInt size);
@@ -122,6 +139,7 @@ void           *PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val);
 
 void            PlincInitOps(PlincInterp *i, const PlincOp *o);
 void            PlincInitStackOps(PlincInterp *i);
+void            PlincInitTypeOps(PlincInterp *i);
 void            PlincInitPrintOps(PlincInterp *i);
 void            PlincInitArithOps(PlincInterp *i);
 void            PlincInitArrayOps(PlincInterp *i);
