@@ -24,7 +24,7 @@ stdio_read(PlincFile *f)
 static int
 stdio_write(PlincFile *f, int c)
 {
-    return putc(c, ((FILE *)(f->Ptr))) ? PLINC_IOERR : 0;
+    return putc(c, ((FILE *)(f->Ptr))) == EOF ? PLINC_IOERR : 0;
 }
 
 
