@@ -32,7 +32,7 @@ early = """
 } bind def
 
 /==only {dup type /arraytype eq {==array} {==one} ifelse} bind def
-/== {==only (\n) print} bind def
+/== {==only (\\n) print} bind def
 /stack {0 1 count 3 sub {index =} for} bind def
 %/pstack {0 1 count 3 sub {index ==} for} bind def
 
