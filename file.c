@@ -447,7 +447,7 @@ closed_file(PlincFile *f)
 
 
 static int
-closed_write(PlincFile *f, int c)
+closed_writeorunread(PlincFile *f, int c)
 {
     return PLINC_IOERR;
 }
@@ -469,6 +469,7 @@ PlincFileOps plinc_closed_ops = {
     plinc_io_bytesavailable,    /* bytesavailable */
     closed_file,                /* read  */
     closed_readorwritestring,   /* readstring */
-    closed_write,               /* write */
+    closed_writeorunread,       /* unread */
+    closed_writeorunread,       /* write */
     closed_readorwritestring,   /* writestring */
 };

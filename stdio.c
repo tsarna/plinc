@@ -97,6 +97,18 @@ stdio_readstring(PlincFile *f, char *buf, PlincInt l)
 
 
 
+static int
+stdio_unread(PlincFile *f, int c)
+{
+    if (ungetc(c, (FILE *)(f->Ptr)) == EOF) {
+        return PLINC_IOERR;
+    } else {
+        return 0;
+    }
+}
+
+
+
 static PlincInt
 stdio_writestring(PlincFile *f, char *buf, PlincInt l)
 {
@@ -120,6 +132,7 @@ PlincFileOps stdio_ops = {
     plinc_io_bytesavailable,
     stdio_read,
     stdio_readstring,
+    stdio_unread,
     stdio_write,
     stdio_writestring,
 };
