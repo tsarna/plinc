@@ -91,6 +91,9 @@ void    PlincInitPStrDecode(PlincDecodeFile *hf, PlincFile *f, PlincUInt flags);
 
 void    PlincInitStrFile(PlincStrFile *sf, PlincVal *v);
 
+void   *PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val);
+
+
 
 extern const PlincFileOps plinc_closed_ops;
 
