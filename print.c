@@ -4,7 +4,9 @@
 #include <string.h>
 #include <stdio.h> /*XXX*/
 
-static char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+
+static char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 
@@ -239,7 +241,7 @@ PlincReprVal(PlincInterp *i, PlincVal *v)
 
 
 static void *
-op_equals(PlincInterp *i)
+do_equals(PlincInterp *i, int newline)
 {
     char buf[PLINC_FMT_BUFLEN], *p = buf;
     int len = PLINC_FMT_BUFLEN;
@@ -257,9 +259,11 @@ op_equals(PlincInterp *i)
                 return i->ioerror;
             }
 
-            len = f->Ops->write(f, '\n');
-            if (len == PLINC_IOERR) {
-                return i->ioerror;
+            if (newline) {
+                len = f->Ops->write(f, '\n');
+                if (len == PLINC_IOERR) {
+                    return i->ioerror;
+                }
             }
                                                                                 
             PLINC_OPPOP(i);
@@ -267,6 +271,22 @@ op_equals(PlincInterp *i)
         
         return r;
     }
+}
+
+
+
+static void *
+op_equals(PlincInterp *i)
+{
+    return do_equals(i, TRUE);
+}
+
+
+
+static void *
+op_equalsonly(PlincInterp *i)
+{
+    return do_equals(i, FALSE);
 }
 
 
@@ -310,6 +330,7 @@ op_pstack(PlincInterp *i)
 
 static const PlincOp ops[] = {
     {op_equals,         "="},
+    {op_equalsonly,     "=only"},
     {op_equalsequals,   "=="},
     {op_pstack,         "pstack"},
     
