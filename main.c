@@ -1,7 +1,10 @@
 #include <plinc/interp.h>
+#include <plinc/file.h>
 #include <stdio.h>
 
 #define HEAPSIZE 65536
+
+PlincFileOps stdio_ops;
 
 int
 main(int argc, char *argv[])
@@ -9,11 +12,25 @@ main(int argc, char *argv[])
     PlincInterp *i;
     char buf[256];
     void *r;
+
+    PlincFile si, so;
+
+    si.Ops = &stdio_ops;
+    si.Ptr = stdin;
+    so.Ops = &stdio_ops;
+    so.Ptr = stdout;
     
     i = PlincNewInterp(HEAPSIZE);
     if (i) {
 /*        fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);*/
 
+        i->StdIn.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOWRITE;
+        i->StdIn.Val.Ptr = &si;
+        
+        i->StdOut.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOREAD | PLINC_ATTR_NOEXEC;
+        i->StdOut.Val.Ptr = &so;
+        
+        fprintf(stderr, "> ");
         while (fgets(buf, sizeof(buf), stdin)) {
             r = PlincExecStr(i, buf);
             if (r) {
@@ -21,6 +38,7 @@ main(int argc, char *argv[])
                 fwrite(((char*)(r))+1, *(unsigned char *)(r), 1, stderr);
                 fprintf(stderr, "\n");
             }
+            fprintf(stderr, "> ");
         }
         
         PlincFreeInterp(i);
