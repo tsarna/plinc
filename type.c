@@ -1,0 +1,176 @@
+/* $Endicor: stack.c,v 1.13 1999/01/26 04:27:04 tsarna Exp $ */
+
+#include <plinc/interp.h>
+
+#include <stdlib.h>
+#include <string.h>
+
+
+
+static void *
+op_type(PlincInterp *i)
+{
+    PlincVal *v;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        PLINC_DECREF_VAL(*v);
+        
+        switch (PLINC_TYPE(*v)) {
+        case PLINC_TYPE_INT:
+            v->Val.Ptr = i->integertype;
+            break;
+
+        case PLINC_TYPE_REAL:
+            v->Val.Ptr = i->realtype;
+            break;
+
+        case PLINC_TYPE_BOOL:
+            v->Val.Ptr = i->booleantype;
+            break;
+
+        case PLINC_TYPE_ARRAY:
+            v->Val.Ptr = i->arraytype;
+            break;
+
+        case PLINC_TYPE_STRING:
+            v->Val.Ptr = i->stringtype;
+            break;
+
+        case PLINC_TYPE_NAME:
+            v->Val.Ptr = i->nametype;
+            break;
+
+        case PLINC_TYPE_DICT:
+            v->Val.Ptr = i->dicttype;
+            break;
+
+        case PLINC_TYPE_OP:
+            v->Val.Ptr = i->operatortype;
+            break;
+
+        case PLINC_TYPE_FILE:
+            v->Val.Ptr = i->filetype;
+            break;
+
+        case PLINC_TYPE_MARK:
+            v->Val.Ptr = i->marktype;
+            break;
+
+        case PLINC_TYPE_NULL:
+            v->Val.Ptr = i->nulltype;
+            break;
+
+        case PLINC_TYPE_SAVE:
+            v->Val.Ptr = i->savetype;
+            break;
+
+        case PLINC_TYPE_FONTID:
+            v->Val.Ptr = i->fonttype;
+            break;
+        }
+
+        v->Flags = PLINC_TYPE_NAME;
+        
+        return NULL;
+    }
+}
+
+
+
+static void *
+setflags(PlincInterp *i, PlincUInt set, PlincUInt clear)
+{
+    PlincUInt32 *f;
+    PlincVal *v;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+
+        if (PLINC_CAN_WRITE(*v)) {
+            f = &(v->Flags);
+            if (PLINC_TYPE(*v) == PLINC_TYPE_DICT) {
+                f = &(((PlincDict *)(v->Val.Ptr))->Flags);
+            }
+
+            *f &= (~clear);
+            *f |= set;
+
+            return NULL;
+        } else {
+            return i->invalidaccess;
+        }
+    }
+}
+
+
+
+static void *
+op_cvlit(PlincInterp *i)
+{
+    return setflags(i, PLINC_ATTR_LIT, 0);
+}
+
+
+
+static void *
+op_cvx(PlincInterp *i)
+{
+    return setflags(i, 0, PLINC_ATTR_LIT);
+}
+
+
+
+static void *
+op_dot_doexec(PlincInterp *i)
+{
+    return setflags(i, PLINC_ATTR_DOEXEC, PLINC_ATTR_LIT);
+}
+
+
+
+static void *
+op_xcheck(PlincInterp *i)
+{
+    PlincVal v;
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+        if (PLINC_EXEC(PLINC_OPTOPDOWN(i, 0))) {
+            v.Val.Int = 1;
+        } else {
+            v.Val.Int = 0;
+        }
+        
+        PLINC_OPPOP(i);
+        PLINC_OPPUSH(i, v);
+
+        return NULL;
+    }
+}
+
+
+
+static const PlincOp ops[] = {
+    {op_type,           "type"},
+    {op_cvlit,          "cvlit"},
+    {op_cvx,            "cvx"},
+    {op_dot_doexec,     ".doexec"},
+    {op_xcheck,         "xcheck"},
+
+    {NULL,          NULL}
+};
+
+
+
+void
+PlincInitTypeOps(PlincInterp *i)
+{
+    PlincInitOps(i, ops);
+}
