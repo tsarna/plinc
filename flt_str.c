@@ -4,16 +4,6 @@
 #include <string.h>
 
 
-struct _PlincStrFile {
-    const PlincFileOps      *Ops;
-    PlincVal                *Obj;
-    char                    *Str;
-    PlincUInt                Cur;
-    PlincUInt                Len;
-};
-
-typedef struct _PlincStrFile PlincStrFile;
-
 
 static int
 str_close(PlincFile *f)
@@ -144,6 +134,19 @@ const PlincFileOps str_ops = {
 };
 
 
+
+void
+PlincInitStrFile(PlincStrFile *sf, PlincVal *v)
+{
+    sf->Ops = &str_ops;
+    sf->Obj = v;
+    sf->Str = v->Val.Ptr;
+    sf->Len = PLINC_SIZE(*v);
+    sf->Cur = 0;
+}
+
+
+
 static void *
 op_Xstrfile(PlincInterp *i)     /* XXX for debugging only */
 {
@@ -162,11 +165,7 @@ op_Xstrfile(PlincInterp *i)     /* XXX for debugging only */
                 return i->VMerror;
             } else {
                 PLINC_INCREF_VAL(*v);
-                sf->Ops = &str_ops;
-                sf->Obj = v;
-                sf->Str = v->Val.Ptr;
-                sf->Len = PLINC_SIZE(*v);
-                sf->Cur = 0;
+                PlincInitStrFile(sf, v);
 
                 nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_FILE
                     | (v->Flags & PLINC_ACCESS_MASK);
