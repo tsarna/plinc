@@ -19,9 +19,11 @@ early = """
 
 
 % define the 'bind' operator
+
 /bind {} dup exec def
 
 % stack printing operators
+
 /stack {0 1 count 3 sub {index =} for} bind def
 %/pstack {0 1 count 3 sub {index ==} for} bind def
 
