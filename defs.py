@@ -11,7 +11,7 @@ early = r"""
 
 % define the '}' operator
 
-(}) [
+(#) [
     /.decscan load .doexec
     (]) load .doexec
     /cvx load .doexec
