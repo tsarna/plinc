@@ -11,7 +11,7 @@ plinc_io_writestring(PlincFile *f, char *buf, PlincInt l)
     PlincInt c, r = 0;
     
     while (l) {
-        c = f->Ops->write(f, *buf++);
+        c = PlincWrite(f, *buf++);
         if (c) {
             return c;
         } else {

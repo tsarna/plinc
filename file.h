@@ -21,21 +21,25 @@ struct _PlincFileOps {
     PlincInt    (*writestring)(PlincFile *f, char *buf, PlincInt l);
 };
 
+
+#define PlincClose(f)               ((f)->Ops->close(f))
+#define PlincFlush(f)               ((f)->Ops->flush(f))
+#define PlincReset(f)               ((f)->Ops->reset(f))
+#define PlincBytesAvailable(f)      ((f)->Ops->bytesavailable(f))
+#define PlincRead(f)                ((f)->Ops->read(f))
+#define PlincReadString(f, buf, l)  ((f)->Ops->readstring((f), (buf), (l)))
+#define PlincReadLine(f, buf, l)    ((f)->Ops->readline((f), (buf), (l)))
+#define PlincUnRead(f, c)           ((f)->Ops->unread((f), (c)))
+#define PlincWrite(f, c)            ((f)->Ops->write((f), (c)))
+#define PlincWriteString(f, buf, l) ((f)->Ops->writestring((f), (buf), (l)))
+
+
 struct _PlincFile {
     const PlincFileOps      *Ops;
     void                    *Ptr;
 
     /* Other data here in "subclasses" */
 };
-
-
-struct _PlincAsciiFltFile {
-    const PlincFileOps      *Ops;
-    PlincFile               *Ptr;
-    PlincUInt                Flags;
-#define PLINC_FLTF_CLOSETARGET  0x1
-#define PLINC_FLTF_EODMARK      0x2    
-} PlincAsciiFltFile;
 
 
 extern const PlincFileOps plinc_closed_ops;

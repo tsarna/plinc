@@ -12,7 +12,7 @@ plinc_io_readstring(PlincFile *f, char *buf, PlincInt l)
     int c;
     
     while (l) {
-        c = f->Ops->read(f);
+        c = PlincRead(f);
         if (c == PLINC_IOERR) {
             return PLINC_IOERR;
         } else if (c == PLINC_EOF) {

@@ -17,15 +17,15 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
     fo = i->StdOut.Val.Ptr;
     
     while ((p-buf) < len) {
-        c = fi->Ops->read(fi);
+        c = PlincRead(fi);
         switch (c) {
         case '\b':      /* BS */
         case '\x7f':    /* DEL */
             if (p > buf) {
                 if (i->Flags & PLINC_FLAG_ECHO) {
-                    r = fo->Ops->writestring(fo, "\b \b", 3);
+                    r = PlincWriteString(fo, "\b \b", 3);
                 } else {
-                    r = fo->Ops->writestring(fo, " \b", 2);
+                    r = PlincWriteString(fo, " \b", 2);
                 }
                 if (r < 0) {
                     return r;
@@ -37,13 +37,13 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
         case '\x12':    /* ^R */
             l = (p - buf);
             while (l) {
-                r = fo->Ops->writestring(fo, "\b \b", 3);
+                r = PlincWriteString(fo, "\b \b", 3);
                 if (r < 0) {
                     return r;
                 }
                 l--;
             }
-            r = fo->Ops->writestring(fo, buf, p-buf);
+            r = PlincWriteString(fo, buf, p-buf);
             if (r < 0) {
                 return r;
             }
@@ -51,7 +51,7 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
             
         case '\x15':    /* ^U */
             while (p > buf) {
-                r = fo->Ops->writestring(fo, "\b \b", 3);
+                r = PlincWriteString(fo, "\b \b", 3);
                 if (r < 0) {
                     return r;
                 }
@@ -62,7 +62,7 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
         case '\r':
         case '\n':
             if (i->Flags & PLINC_FLAG_ECHO) {
-                r = fo->Ops->write(fo, '\n');
+                r = PlincWrite(fo, '\n');
                 if (r < 0) {
                     return r;
                 }
@@ -79,7 +79,7 @@ PlincEditLine(PlincInterp *i, char *buf, PlincUInt len)
             
         default:
             if (i->Flags & PLINC_FLAG_ECHO) {
-                r = fo->Ops->write(fo, c);
+                r = PlincWrite(fo, c);
                 if (r < 0) {
                     return r;
                 }

@@ -20,14 +20,14 @@ plinc_io_readline(PlincFile *f, char *buf, PlincInt *l)
     *l = 0;
     
     while (len) {
-        c = f->Ops->read(f);
+        c = PlincRead(f);
         if (c < 0) { /* IOERR or EOF */
             return c;
         } else {
             if (c == '\n') {
                 return TRUE;
             } else if (c == '\r') {
-                c = f->Ops->read(f);
+                c = PlincRead(f);
                 if (c == PLINC_EOF) {
                     return TRUE; /* CR was EOL */
                 } else if (c == PLINC_IOERR) {
@@ -36,7 +36,7 @@ plinc_io_readline(PlincFile *f, char *buf, PlincInt *l)
                     return TRUE;
                 } else {
                     /* CR was EOL, whatever we got starts the next line */
-                    c = f->Ops->unread(f, c);
+                    c = PlincUnRead(f, c);
                     if (c) {
                         return c;
                     }

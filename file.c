@@ -80,7 +80,7 @@ op_closefile(PlincInterp *i)
             return i->typecheck;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            if ((f->Ops->close(f)) == PLINC_IOERR) {
+            if ((PlincClose(f)) == PLINC_IOERR) {
                 return i->ioerror;
             }
         }
@@ -110,7 +110,7 @@ op_read(PlincInterp *i)
                 return i->invalidaccess;
             } else {
                 f = (PlincFile *)(v->Val.Ptr);
-                c = f->Ops->read(f);
+                c = PlincRead(f);
                 if (c == PLINC_IOERR) {
                     return i->ioerror;
                 } else if (c == PLINC_EOF) {
@@ -163,7 +163,7 @@ op_readstring(PlincInterp *i)
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
             s = PLINC_SIZE(*v2);
-            r = f->Ops->readstring(f, v2->Val.Ptr, s);
+            r = PlincReadString(f, v2->Val.Ptr, s);
             if (r == PLINC_IOERR) {
                 return i->ioerror;
             } else {
@@ -208,7 +208,7 @@ op_readline(PlincInterp *i)
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
             s = PLINC_SIZE(*v2);
-            r = f->Ops->readline(f, v2->Val.Ptr, &s);
+            r = PlincReadLine(f, v2->Val.Ptr, &s);
             if (r == PLINC_IOERR) {
                 return i->ioerror;
             } else if (r == FALSE) {
@@ -254,7 +254,7 @@ op_write(PlincInterp *i)
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
-            c = f->Ops->write(f, v2->Val.Int);
+            c = PlincWrite(f, v2->Val.Int);
             if (c == PLINC_IOERR) {
                 return i->ioerror;
             }
@@ -286,7 +286,7 @@ op_writestring(PlincInterp *i)
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(v1->Val.Ptr);
-            c = f->Ops->writestring(f, v2->Val.Ptr, PLINC_SIZE(*v2));
+            c = PlincWriteString(f, v2->Val.Ptr, PLINC_SIZE(*v2));
 
             if (c == PLINC_IOERR) {
                 return i->ioerror;
@@ -334,7 +334,7 @@ op_writehexstring(PlincInterp *i)
                     h--;
                 }
                 
-                c = f->Ops->writestring(f, buf, PLINC_HEX_BUFSIZE);
+                c = PlincWriteString(f, buf, PLINC_HEX_BUFSIZE);
                 if (c == PLINC_IOERR) {
                     return i->ioerror;
                 }
@@ -348,7 +348,7 @@ op_writehexstring(PlincInterp *i)
                 h++; l--;
             }
                 
-            c = f->Ops->writestring(f, buf, h*2);
+            c = PlincWriteString(f, buf, h*2);
             if (c == PLINC_IOERR) {
                 return i->ioerror;
             }
@@ -381,7 +381,7 @@ op_bytesavailable(PlincInterp *i)
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            c = f->Ops->bytesavailable(f);
+            c = PlincBytesAvailable(f);
 
             if (c == PLINC_IOERR) {
                 return i->ioerror;
@@ -407,7 +407,7 @@ op_flush(PlincInterp *i)
     
     f = (PlincFile *)(i->StdOut.Val.Ptr);
 
-    return ((f->Ops->flush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+    return ((PlincFlush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
 }
 
 
@@ -428,7 +428,7 @@ op_flushfile(PlincInterp *i)
             return i->typecheck;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            r = ((f->Ops->flush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            r = ((PlincFlush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
 
             PLINC_OPPOP(i);
         }
@@ -455,7 +455,7 @@ op_resetfile(PlincInterp *i)
             return i->typecheck;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            r = ((f->Ops->reset(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            r = ((PlincReset(f)) == PLINC_IOERR) ? i->ioerror : NULL;
 
             PLINC_OPPOP(i);
         }
@@ -567,7 +567,7 @@ op_print(PlincInterp *i)
             return i->invalidaccess;
         } else {
             f = (PlincFile *)(i->StdOut.Val.Ptr);
-            c = f->Ops->writestring(f, v->Val.Ptr, PLINC_SIZE(*v));
+            c = PlincWriteString(f, v->Val.Ptr, PLINC_SIZE(*v));
 
             if (c == PLINC_IOERR) {
                 return i->ioerror;

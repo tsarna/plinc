@@ -254,13 +254,13 @@ do_equals(PlincInterp *i, int newline)
         r = PlincFmtCVS(i, &PLINC_OPTOPDOWN(i, 0), &p, &len);
         if (!r) {
             f = (PlincFile *)(i->StdOut.Val.Ptr);
-            len = f->Ops->writestring(f, p, len);
+            len = PlincWriteString(f, p, len);
             if (len == PLINC_IOERR) {
                 return i->ioerror;
             }
 
             if (newline) {
-                len = f->Ops->write(f, '\n');
+                len = PlincWrite(f, '\n');
                 if (len == PLINC_IOERR) {
                     return i->ioerror;
                 }
