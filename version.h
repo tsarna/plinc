@@ -1,1 +1,1 @@
-#define PLINC_VERSION "Milestone 6"
+#define PLINC_VERSION "Milestone 7"
