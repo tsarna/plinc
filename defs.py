@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.1 1999/01/20 01:36:21 tsarna Exp $
+# $Endicor: defs.py,v 1.2 1999/01/20 05:31:25 tsarna Exp tsarna $
 
 
 early = """
@@ -11,6 +11,7 @@ early = """
 % operators available.  In fact, the point here is to define them. 
 
 % define the ']' operator.
+% the contained ops need to be .doexec so they're run when called from '}'
 
 systemdict (]) [
     /counttomark load .doexec
@@ -43,9 +44,12 @@ def defs(name, s):
     s = re.sub(r"\s+", " ", s)
     s = string.strip(s)
     s = re.sub(r"\s+\(", "(", s)
+    s = re.sub(r"\)\s+", ")", s)
     s = re.sub(r"\s+\/", "/", s)
-    s = re.sub(r"\s+\{", "{", s)
-    s = re.sub(r"\s+\[", "[", s)
+    s = re.sub(r"\s*\{\s*", "{", s)
+    s = re.sub(r"\s*\}\s*", "}", s)
+    s = re.sub(r"\s*\[\s*", "[", s)
+    s = re.sub(r"\s*\]\s*", "]", s)
     s = 'static char %s_defs[] = "%s\\n";\n' % (name, s)
     return s
 
