@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.11 1999/01/19 23:10:35 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.12 1999/01/20 01:36:21 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -123,7 +123,7 @@ PlincInitVals(PlincInterp *i)
     i->x = d; v.Flags = d->Flags; v.Val.Ptr = d; \
     PlincPutDictName(i, i->systemdict, name, &v);
 
-    DEFDICT(systemdict, 50);
+    DEFDICT(systemdict, 75);
     PLINC_PUSH(i->DictStack, v);
     i->DictStack.MinLen = 1;
 

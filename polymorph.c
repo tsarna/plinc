@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.2 1999/01/18 00:54:54 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.1 1999/01/18 21:16:20 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -36,8 +36,40 @@ op_put(PlincInterp *i)
 
 
 
+static void *
+op_length(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    int t;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        t = PLINC_TYPE(*v);
+       
+        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+       
+        if ((t == PLINC_TYPE_ARRAY) || (t == PLINC_TYPE_STRING)) {
+            nv.Val.Int = PLINC_SIZE(*v);
+        } else if (t == PLINC_TYPE_DICT) {
+            nv.Val.Int = ((PlincDict *)(v->Val.Ptr))->Len;
+        } else {
+            return i->typecheck;
+        }
+
+        PLINC_OPPOP(i);
+        PLINC_OPPUSH(i, nv);
+        
+        return NULL;
+    }
+}
+
+
+
 static PlincOp ops[] = {
     {"put",         op_put},
+    {"length",      op_length},
 
     {NULL,          NULL}
 };
