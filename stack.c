@@ -1,4 +1,4 @@
-/* $Endicor$ */
+/* $Endicor: stack.c,v 1.1 1999/01/14 01:26:00 tsarna Exp tsarna $ */
 
 #include <plinc/stack.h>
 
@@ -14,9 +14,9 @@ PlincNewStack(PlincStack *s, size_t size)
     if (s->Stack) {
         ok = TRUE;
         
-        s->StackLen = 0;
-        s->StackMinLen = 0;
-        s->StackMaxLen = size;
+        s->Len = 0;
+        s->MinLen = 0;
+        s->MaxLen = size;
     }
     
     return ok;
