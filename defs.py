@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.5 1999/01/20 20:30:12 tsarna Exp $
+# $Endicor: defs.py,v 1.6 1999/01/21 18:09:26 tsarna Exp tsarna $
 
 
 early = """
@@ -43,6 +43,11 @@ systemdict /def {
 
 
 
+%XXX
+/bind {} def
+
+
+
 % define the '>>' operator
 
 (>>) {
@@ -50,8 +55,18 @@ systemdict /def {
         { dup 4 2 roll put }
     repeat 
     exch pop
-} def
+} bind def
 
+
+
+% define the 'where' operator
+
+/store {
+    exch dup where
+        { 3 1 roll exch put }
+        { exch undefined }
+    ifelse
+} bind def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """

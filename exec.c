@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.12 1999/01/20 23:14:23 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.13 1999/01/21 18:09:26 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -206,7 +206,6 @@ op_exec(PlincInterp *i)
         /* force proc to be executed */
         v->Flags |= PLINC_ATTR_DOEXEC;
 
-        PLINC_INCREF_VAL(*v);
         PLINC_TOPDOWN(i->ExecStack, 0) = *v;
         PLINC_OPPOP(i);
 
@@ -225,20 +224,19 @@ op_if(PlincInterp *i)
     if (!PLINC_OPSTACKHAS(i, 2)) {
         return i->stackunderflow;
     } else {
-        v1 = &PLINC_OPTOPDOWN(i, 0);
-        v2 = &PLINC_OPTOPDOWN(i, 1);
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
 
-        if ((PLINC_TYPE(*v2) != PLINC_TYPE_BOOL)
-        ||  (PLINC_TYPE(*v1) != PLINC_TYPE_ARRAY)) {
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_BOOL)
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_ARRAY)) {
             return i->typecheck;
-        } else if (!PLINC_CAN_EXEC(*v1)) {
+        } else if (!PLINC_CAN_EXEC(*v2)) {
             return i->invalidaccess;
         } else {
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
 
-            if (v2->Val.Int) {
-                PLINC_INCREF_VAL(*v2);
+            if (v1->Val.Int) {
                 PLINC_TOPDOWN(i->ExecStack, 0) = *v2;
 
                 return i;
@@ -250,11 +248,49 @@ op_if(PlincInterp *i)
 }
 
 
+
+static void *
+op_ifelse(PlincInterp *i)
+{
+    PlincVal *v1, *v2, *v3;
+
+    if (!PLINC_OPSTACKHAS(i, 3)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 2);
+        v2 = &PLINC_OPTOPDOWN(i, 1);
+        v3 = &PLINC_OPTOPDOWN(i, 0);
+
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_BOOL)
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_ARRAY)
+        ||  (PLINC_TYPE(*v3) != PLINC_TYPE_ARRAY)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_EXEC(*v2) || !PLINC_CAN_EXEC(*v3)) {
+            return i->invalidaccess;
+        } else {
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+
+            if (v1->Val.Int) {
+                PLINC_TOPDOWN(i->ExecStack, 0) = *v2;
+            } else {
+                PLINC_TOPDOWN(i->ExecStack, 0) = *v3;
+            }
+
+            return i;
+        }
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {"{",           op_rbrace},
     {".decscan",    op_dot_decscan},
     {"exec",        op_exec},
     {"if",          op_if},
+    {"ifelse",      op_ifelse},
 
     {NULL,          NULL}
 };

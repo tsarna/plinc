@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.11 1999/01/20 01:36:21 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.12 1999/01/20 20:30:12 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -259,62 +259,6 @@ op_maxlength(PlincInterp *i)
 
 
 static void *
-op_currentdict(PlincInterp *i)
-{
-    if (!PLINC_OPSTACKROOM(i, 1)) {
-        return i->stackoverflow;
-    } else {
-        PLINC_OPPUSH(i, PLINC_TOPDOWN(i->DictStack, 0));
-
-        return NULL;
-    }
-}
-
-
-
-static void *
-op_countdictstack(PlincInterp *i)
-{
-    PlincVal v;
-    
-    if (!PLINC_OPSTACKROOM(i, 1)) {
-        return i->stackoverflow;
-    } else {
-        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-        v.Val.Int = i->DictStack.Len;
-
-        PLINC_OPPUSH(i, v);
-
-        return NULL;
-    }
-}
-
-
-
-static void *
-op_load(PlincInterp *i)
-{
-    PlincVal v;
-    void *r;
-    
-    if (!PLINC_OPSTACKHAS(i, 1)) {
-        return i->stackunderflow;
-    } else {
-        r = PlincLoadDict(i, &PLINC_OPTOPDOWN(i, 0), &v);
-        if (r) {
-            return r;
-        } else {
-            PLINC_OPPOP(i);
-            PLINC_OPPUSH(i, v);
-            
-            return NULL;
-        }
-    }
-}
-
-
-
-static void *
 op_begin(PlincInterp *i)
 {
     PlincDict *d;
@@ -363,6 +307,108 @@ op_end(PlincInterp *i)
 
 
 
+static void *
+op_load(PlincInterp *i)
+{
+    PlincVal v;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        r = PlincLoadDict(i, &PLINC_OPTOPDOWN(i, 0), &v);
+        if (r) {
+            return r;
+        } else {
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, v);
+            
+            return NULL;
+        }
+    }
+}
+
+
+
+static void *
+op_where(PlincInterp *i)
+{
+    PlincDict *d;
+    PlincVal v;
+    void *r;
+    int j;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        for (j = 0; j < i->DictStack.Len; j++) {
+            d = PLINC_TOPDOWN(i->DictStack, j).Val.Ptr;
+            r = PlincGetDict(i, d, &PLINC_OPTOPDOWN(i, 0), &v);
+            if (r != i->undefined) {
+                PLINC_OPPOP(i);
+
+                v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_DICT | PLINC_SIZE(*d);
+                v.Val.Ptr = d;
+
+                PLINC_OPPUSH(i, v);
+
+                v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                v.Val.Int = TRUE;
+
+                PLINC_OPPUSH(i, v);
+                
+                return NULL;
+            }
+        }
+        
+        PLINC_OPPOP(i);
+
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+        v.Val.Int = FALSE;
+
+        PLINC_OPPUSH(i, v);
+        
+        return NULL;
+    }
+}
+
+
+
+static void *
+op_currentdict(PlincInterp *i)
+{
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        PLINC_OPPUSH(i, PLINC_TOPDOWN(i->DictStack, 0));
+
+        return NULL;
+    }
+}
+
+
+
+static void *
+op_countdictstack(PlincInterp *i)
+{
+    PlincVal v;
+    
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+        v.Val.Int = i->DictStack.Len;
+
+        PLINC_OPPUSH(i, v);
+
+        return NULL;
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {"dict",            op_dict},
     {"maxlength",       op_maxlength},
@@ -370,6 +416,8 @@ static const PlincOp ops[] = {
     {"end",             op_end},
 
     {"load",            op_load},
+
+    {"where",           op_where},
 
     {"currentdict",     op_currentdict},
     {"countdictstack",  op_countdictstack},
