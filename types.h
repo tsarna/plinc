@@ -1,21 +1,14 @@
-/* $Endicor$ */
+/* $Endicor: types.h,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
 
 #include <sys/types.h>
 
 
 #define PLINC_ALIGN         4
 #define PLINC_ROUND(x)      (((x) + PLINC_ALIGN - 1) & ~(PLINC_ALIGN - 1))
-#define PLINC_NULL          0
-#define PLINC_CPTR(hh, p)   ((char *)(hh)+(p))
-#define PLINC_VPTR(hh, p)   ((void *)((char *)(hh)+(p)))
-#define PLINC_DEREF(hh, p)  (*(PlincPtr *)PLINC_CPTR((hh), (p)))
-#define PLINC_LINK(hh, o)   (*(((PlincPtr *)PLINC_CPTR((hh), (o))) - 1))
-
+#define PLINC_LINK(o)       (*(((void **)(o)) - 1))
 
 typedef int32_t     PlincInt;
 typedef u_int32_t   PlincUInt;
-typedef u_int32_t   PlincPtr;
-
 
 #define PLINC_ATTR_LIT      0x80000000
 #define PLINC_ATTR_WRITE    0x40000000
@@ -45,10 +38,12 @@ typedef u_int32_t   PlincPtr;
 typedef struct _PlincVal PlincVal;
 struct _PlincVal {
     PlincUInt   Flags;
-    PlincPtr    Ptr;
+    void       *Ptr;
     union       {
         PlincInt    Int;
         float       Real;
-        
     } Val;
 };
+
+
+#define PLINC_VAL_SIZE  PLINC_ROUND(sizeof(PlincVal))

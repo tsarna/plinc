@@ -1,4 +1,4 @@
-/* $Endicor$ */
+/* $Endicor: heap.h,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
 
 
 #include <plinc/types.h>
@@ -9,16 +9,11 @@
 
 typedef struct _PlincHeapHeader PlincHeapHeader;
 struct _PlincHeapHeader {
-    PlincUInt   Magic1;
-    PlincUInt   Magic2;
-#define         PLINC_MAGIC1    0x4E444352
-#define         PLINC_MAGIC2    0x504C4E43
-
-    PlincUInt   Version;
-    PlincUInt   Len;
-    PlincUInt   Top;
-    PlincPtr    Names;
-    PlincPtr    Objects;
+    size_t      Len;
+    size_t      Left;
+    void       *Top;
+    char       *Names;
+    char       *Objects;
 };
 
 
@@ -33,5 +28,5 @@ struct _PlincHeap {
 void        PlincInitHeapHeader(PlincHeapHeader *mem, size_t size);
 PlincHeap  *PlincNewHeap(size_t size);
 void        PlincFreeHeap(PlincHeap *h);
-PlincPtr    PlincAllocHeap(PlincHeap *h, size_t len);
-PlincPtr    PlincName(PlincHeap *h, char *name, size_t len);
+void       *PlincAllocHeap(PlincHeap *h, size_t len);
+void       *PlincName(PlincHeap *h, char *name, size_t len);

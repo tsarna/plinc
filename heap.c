@@ -1,4 +1,4 @@
-/* $Endicor$ */
+/* $Endicor: heap.c,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
 
 
 #include <stdlib.h>
@@ -10,13 +10,11 @@
 void
 PlincInitHeapHeader(PlincHeapHeader *hh, size_t size)
 {
-    hh->Magic1 = PLINC_MAGIC1;
-    hh->Magic2 = PLINC_MAGIC2;
-    hh->Version = 0x00010000;
     hh->Len = size;
-    hh->Top = PLINC_ROUND(sizeof(PlincHeapHeader));
-    hh->Objects = PLINC_NULL;
-    hh->Names = PLINC_NULL;
+    hh->Left = size - PLINC_ROUND(sizeof(PlincHeapHeader));
+    hh->Top = ((char *)hh) + PLINC_ROUND(sizeof(PlincHeapHeader));
+    hh->Objects = NULL;
+    hh->Names = NULL;
 }
 
 
@@ -43,20 +41,20 @@ PlincNewHeap(size_t size)
 
 
 
-PlincPtr
+void *
 PlincAllocHeap(PlincHeap *h, size_t len)
 {
-    PlincPtr r = PLINC_NULL;
     PlincHeapHeader *hh = h->HeapHeader;
+    char **r = NULL;
 
-    len = PLINC_ROUND(len + sizeof(PlincPtr));
+    len = PLINC_ROUND(len + sizeof(char *));
    
-    if (len <= (hh->Len - hh->Top)) {
-        r = hh->Top + sizeof(PlincPtr);;
-        hh->Top += len;
+    if (len <= hh->Left) {
+        r = ((char **)hh->Top) + 1;
+        hh->Top = ((char *)hh->Top) + len;
     }
-  
-    return r;
+
+    return (void *)r;
 }
 
 
@@ -74,38 +72,35 @@ PlincFreeHeap(PlincHeap *h)
 }
 
 
-PlincPtr
+void *
 PlincName(PlincHeap *h, char *name, size_t len)
 {
-    PlincPtr n, r = PLINC_NULL;
     PlincHeapHeader *hh = h->HeapHeader;
-    unsigned char *s;
+    unsigned char *n, *r = NULL;
     size_t nlen;
     
     if (len <= PLINC_NAME_MAX) {
         n = hh->Names;
         while (n) {
-            s = (unsigned char *)PLINC_CPTR(hh, n);
-            nlen = *s++;
+            nlen = *n;
             if (nlen == len) {
-                if (!memcmp(s, name, len)) {
+                if (!memcmp(n+1, name, len)) {
                     r = n;
                     break;
                 }
             }
        
-            n = PLINC_LINK(hh, n);
+            n = PLINC_LINK(n);
         }
     
         if (!r) {
             r = PlincAllocHeap(h, len + 1);
             if (r) {
                 unsigned char *cp;
-                PlincPtr *p;
                
-                PLINC_LINK(hh, r) = hh->Names;
+                PLINC_LINK(r) = hh->Names;
                 hh->Names = r;
-                cp = (unsigned char *)PLINC_CPTR(hh, r);
+                cp = r;
                 *cp++ = len;
                 memcpy(cp, name, len);
             }
