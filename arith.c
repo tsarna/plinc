@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.6 1999/01/22 02:10:37 tsarna Exp $ */
+/* $Endicor: arith.c,v 1.7 1999/01/24 03:47:42 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -212,15 +212,78 @@ op_neg(PlincInterp *i)
 
 
 
+static void *
+op_rand(PlincInterp *i)
+{
+    PlincVal v;
+    
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+        v.Val.Int = rand_r(&(i->Seed));
+        
+        PLINC_OPPUSH(i, v);
+        
+        return NULL;
+    }
+}
+
+
+
+static void *
+op_srand(PlincInterp *i)
+{
+    PlincVal *v;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_TYPE(*v) != PLINC_TYPE_INT) {
+            return i->typecheck;
+        } else {
+            i->State = i->Seed = v->Val.Int;
+            
+            PLINC_OPPOP(i);
+            
+            return NULL;
+        }
+    }
+}
+
+
+
+static void *
+op_rrand(PlincInterp *i)
+{
+    PlincVal v;
+    
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+        v.Val.Int = i->State;
+        
+        PLINC_OPPUSH(i, v);
+        
+        return NULL;
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {op_add,        "add"},
-
     {op_idiv,       "idiv"},
     {op_mod,        "mod"},
 
     {op_sub,        "sub"},
     {op_abs,        "abs"},
     {op_neg,        "neg"},
+    {op_rand,       "rand"},
+    {op_srand,      "srand"},
+    {op_rrand,      "rrand"},
 
     {NULL,          NULL}
 };
