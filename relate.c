@@ -5,85 +5,73 @@
 int
 PlincEqual(PlincVal *v1, PlincVal *v2)
 {
-    char *p1 = NULL, *p2 = NULL;
-    size_t l1 = 0, l2 = 0;
-    int t1, t2, eq = FALSE;
+    int t1, t2, eq = FALSE, nl;
+    char *n;
+#ifdef WITH_REAL
+    float r1, r2;
+#endif
     
     t1 = PLINC_TYPE(*v1);
     t2 = PLINC_TYPE(*v2);
-    eq = (t1 == t2);
     
-    switch (t1) {
-    case PLINC_TYPE_BOOL:
-        eq = (eq &&
-             ((v1->Val.Int && v2->Val.Int)
-             || !(v1->Val.Int || v2->Val.Int)));
-            
-        break;
-
-    case PLINC_TYPE_ARRAY:
-    case PLINC_TYPE_DICT:
-    case PLINC_TYPE_OP:
-    case PLINC_TYPE_FILE:
-    case PLINC_TYPE_SAVE:
-    case PLINC_TYPE_FONTID:
-        eq = (eq && (v1->Val.Ptr == v2->Val.Ptr));
-        break;
-
-    case PLINC_TYPE_NAME:
-        /* optimization: two names are always equal if their ptr is equal */
-        
-        if (eq && (v1->Val.Ptr == v2->Val.Ptr)) {
-            return TRUE;
-        }
-        /* FALLTHRU */
-
-    case PLINC_TYPE_STRING:
-        /* XXX invalidaccess on strings */
-        eq = FALSE;
-
-        if (t1 == PLINC_TYPE_STRING) {
-            p1 = v1->Val.Ptr;
-            l1 = PLINC_SIZE(*v1);
-        } else {
-            p1 = ((char *)(v1->Val.Ptr)) + 1;
-            l1 = *(unsigned char *)(v1->Val.Ptr);
-        }        
-
-        if (t2 == PLINC_TYPE_STRING) {
-            p2 = v2->Val.Ptr;
-            l2 = PLINC_SIZE(*v2);
-        } else if (t2 == PLINC_TYPE_NAME) {
-            p2 = ((char *)(v2->Val.Ptr)) + 1;
-            l2 = *(unsigned char *)(v2->Val.Ptr);
-        } else {
-            return FALSE;
-        }
-        
-        if (l1 == l2) {
-            eq = !memcmp(p1, p2, l1);
-        }
-        break;
-
-    case PLINC_TYPE_INT:
-        if (t1 == t2) {
+    if (t1 == t2) {
+        switch (t1) {
+        case PLINC_TYPE_INT:
             eq = (v1->Val.Int == v2->Val.Int);
-        } else if (t2 == PLINC_TYPE_REAL) {
-            eq = ((float)v1->Val.Int == v2->Val.Real);
-        } else {
-            eq = FALSE;
-        }
-        break;
+            break;
 
-    case PLINC_TYPE_REAL:
-        if (t1 == t2) {
+        case PLINC_TYPE_BOOL:
+            eq = (((v1->Val.Int) != 0) == ((v2->Val.Int) != 0));
+            break;
+
+        case PLINC_TYPE_STRING:
+            if (PLINC_SIZE(*v1) == PLINC_SIZE(*v2)) {
+                eq = (memcmp(v1->Val.Ptr, v2->Val.Ptr, PLINC_SIZE(*v1)) == 0);
+            }
+            break;
+
+#ifdef WITH_REAL
+        case PLINC_TYPE_REAL:
             eq = (v1->Val.Real == v2->Val.Real);
-        } else if (t2 == PLINC_TYPE_INT) {
-            eq = (v1->Val.Real == (float)v2->Val.Int);
-        } else {
-            eq = FALSE;
+            break;
+#endif
+
+        default:
+            eq = v1->Val.Ptr == v2->Val.Ptr;
+            break;
         }
-        break;
+    } else if (((t1 == PLINC_TYPE_STRING) && (t2 == PLINC_TYPE_NAME))
+           ||  ((t2 == PLINC_TYPE_STRING) && (t1 == PLINC_TYPE_NAME))) {
+        if (t1 == PLINC_TYPE_NAME) {
+            /* always work with v1 string vs n */
+            n = v1->Val.Ptr;
+            v1 = v2;
+        } else {
+            n = v2->Val.Ptr;
+        }
+        
+        nl = (int)(*n++);
+        
+        if (PLINC_SIZE(*v1) == nl) {
+            eq = (memcmp(v1->Val.Ptr, n, nl) == 0);
+        }
+#ifdef WITH_REAL
+    } else if (((t1 == PLINC_TYPE_INT) && (t2 == PLINC_TYPE_REAL))
+           ||  ((t2 == PLINC_TYPE_INT) && (t1 == PLINC_TYPE_REAL))) {
+        if (t1 == PLINC_TYPE_INT) {
+            r1 = (float)(v1->Val.Int);
+        } else {
+            r1 = v1->Val.Real;
+        }
+
+        if (t2 == PLINC_TYPE_INT) {
+            r2 = (float)(v2->Val.Int);
+        } else {
+            r2 = v2->Val.Real;
+        }
+        
+        eq = (r1 == r2);
+#endif
     }
 
     return eq;
