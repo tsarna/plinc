@@ -169,7 +169,9 @@ op_rbrace(PlincInterp *i)
 
     if (PLINC_OPSTACKROOM(i, 1)) {
         i->ScanLevel++;
+#if 0
 fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
+#endif
         v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;
         PLINC_OPPUSH(i, v);
 
@@ -186,8 +188,9 @@ op_dot_decscan(PlincInterp *i)
 {
     if (i->ScanLevel) {
         i->ScanLevel--;
+#if 0
 fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
-
+#endif
         return NULL;
     } else {
         return i->syntaxerror;
