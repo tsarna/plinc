@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.10 1999/01/27 03:16:56 tsarna Exp $ */
+/* $Endicor: arith.c,v 1.11 1999/01/27 23:17:19 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -413,8 +413,10 @@ op_rand(PlincInterp *i)
     if (!PLINC_OPSTACKROOM(i, 1)) {
         return i->stackoverflow;
     } else {
+        i->RandState = i->RandState * 1103515245 + 12345;
+            
         v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-        v.Val.Int = rand_r(&(i->Seed));
+        v.Val.Int = i->RandState & PLINCINT_MAX;
         
         PLINC_OPPUSH(i, v);
         
@@ -436,7 +438,7 @@ op_srand(PlincInterp *i)
         if (PLINC_TYPE(*v) != PLINC_TYPE_INT) {
             return i->typecheck;
         } else {
-            i->State = i->Seed = v->Val.Int;
+            i->RandState = v->Val.Int;
             
             PLINC_OPPOP(i);
             
@@ -456,7 +458,7 @@ op_rrand(PlincInterp *i)
         return i->stackoverflow;
     } else {
         v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-        v.Val.Int = i->State;
+        v.Val.Int = i->RandState;
         
         PLINC_OPPUSH(i, v);
         
