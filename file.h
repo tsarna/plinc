@@ -71,7 +71,7 @@ typedef struct _PlincDecodeFile {
 #define PLINC_DECF_UNREAD           0x02
 #define PLINC_DECF_WITHEOD          0x04
     PlincUInt               Count;
-    char                    Unread;
+    int                     Unread;
 } PlincDecodeFile;
 
 
