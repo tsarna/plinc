@@ -12,6 +12,8 @@
 
 static const char hexdigits[] = "0123456789abcdef";
 
+static const PlincFile closedfile;
+
 
 
 static void *
@@ -494,6 +496,60 @@ op_status(PlincInterp *i)
 
 
 static void *
+op_currentfile(PlincInterp *i)
+{
+    PlincVal nv;
+    int n;
+     
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        for (n = 0; n < i->ExecStack.Len; n++) {
+            if (PLINC_IS_FILE(PLINC_TOPDOWN(i->ExecStack, n))) {
+                PLINC_OPPUSH(i, PLINC_TOPDOWN(i->ExecStack, n));
+                return NULL;
+            }
+        }
+        
+        nv.Flags = PLINC_TYPE_FILE | PLINC_ATTR_LIT;
+        nv.Val.Ptr = (void *)&closedfile;
+        PLINC_OPPUSH(i, nv);
+    }
+
+    return NULL;
+}
+
+
+
+static void *
+op_echo(PlincInterp *i)
+{
+    PlincVal *v;
+     
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) != PLINC_TYPE_BOOL) {
+            return i->typecheck;
+        } else {
+            if (v->Val.Int) {
+                i->Flags |= PLINC_FLAG_ECHO;
+            } else {
+                i->Flags &= ~PLINC_FLAG_ECHO;
+            }
+
+            PLINC_OPPOP(i);
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_print(PlincInterp *i)
 {
     PlincVal *v;
@@ -540,7 +596,9 @@ static const PlincOp ops[] = {
     {op_flushfile,      "flushfile"},
     {op_resetfile,      "resetfile"},
     {op_status,         "status"},
+    {op_currentfile,    "currentfile"},
     {op_print,          "print"},
+    {op_echo,           "echo"},
 
     {NULL,              NULL}
 };
@@ -600,4 +658,10 @@ const PlincFileOps plinc_closed_ops = {
     closed_writeorunread,       /* unread */
     closed_writeorunread,       /* write */
     closed_readorwritestring,   /* writestring */
+};
+
+
+static const PlincFile closedfile = {
+    &plinc_closed_ops,
+    NULL
 };
