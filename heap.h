@@ -4,9 +4,6 @@
 #include <plinc/types.h>
 
 
-#define PLINC_NAME_MAX  127
-
-
 typedef struct _PlincHeapHeader PlincHeapHeader;
 struct _PlincHeapHeader {
     size_t      Len;
