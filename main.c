@@ -1,4 +1,4 @@
-/* $Endicor: main.c,v 1.1 1999/01/14 01:26:00 tsarna Exp $ */
+/* $Endicor: main.c,v 1.2 1999/01/14 05:02:15 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h>
@@ -15,6 +15,8 @@ main(int argc, char *argv[])
         fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);
 
         PlincPrintDict(i, i->systemdict);
+
+        PlincExecStr(i, "1 2 3 4 ");
         
         PlincFreeInterp(i);
     } else {

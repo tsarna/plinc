@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.4 1999/01/14 05:02:15 tsarna Exp tsarna $ */
+/* $Endicor: types.h,v 1.5 1999/01/17 02:11:46 tsarna Exp tsarna $ */
 
 #include <sys/types.h>
 
@@ -31,15 +31,15 @@ typedef u_int32_t   PlincUInt;
 #define PLINC_TYPE_MASK     0x03F00000
 #define PLINC_SIZE_MASK     0x000FFFFF
 
-#define PLINC_LIT(x)        ((x)->Flags & PLINC_ATTR_LIT)
-#define PLINC_EXEC(x)       (!((x)->Flags & PLINC_ATTR_LIT))
-#define PLINC_DOEXEC(x)     (!((x)->Flags & PLINC_ATTR_DOEXEC))
-#define PLINC_CAN_READ(x)   (!((x)->Flags & PLINC_ATTR_NOREAD))
-#define PLINC_CAN_WRITE(x)  (!((x)->Flags & PLINC_ATTR_NOWRITE))
-#define PLINC_CAN_EXEC(x)   (!((x)->Flags & PLINC_ATTR_NOEXEC))
+#define PLINC_LIT(x)        ((x).Flags & PLINC_ATTR_LIT)
+#define PLINC_EXEC(x)       (!((x).Flags & PLINC_ATTR_LIT))
+#define PLINC_DOEXEC(x)     (!((x).Flags & PLINC_ATTR_DOEXEC))
+#define PLINC_CAN_READ(x)   (!((x).Flags & PLINC_ATTR_NOREAD))
+#define PLINC_CAN_WRITE(x)  (!((x).Flags & PLINC_ATTR_NOWRITE))
+#define PLINC_CAN_EXEC(x)   (!((x).Flags & PLINC_ATTR_NOEXEC))
 
-#define PLINC_TYPE(x)       ((x)->Flags & PLINC_TYPE_MASK)
-#define PLINC_SIZE(x)       ((x)->Flags & PLINC_SIZE_MASK)
+#define PLINC_TYPE(x)       ((x).Flags & PLINC_TYPE_MASK)
+#define PLINC_SIZE(x)       ((x).Flags & PLINC_SIZE_MASK)
 
 #define PLINC_TYPE_INT      0x00000000
 #define PLINC_TYPE_REAL     0x00100000

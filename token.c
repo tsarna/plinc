@@ -1,8 +1,10 @@
-/* $Endicor$ */
+/* $Endicor: token.c,v 1.1 1999/01/17 02:11:46 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 
 #include <stdlib.h>
+#include <stdio.h> /*XXX*/
+
 
 #define WS  0x8000      /* Whitespace */
 #define SP  0x4000      /* Special */
@@ -28,7 +30,6 @@ static void    *NameToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, 
 void *
 PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 {
-    int incomment = FALSE;
     char *p = buf;
     size_t l = len;
 
@@ -75,7 +76,7 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
             }
         } else if (*p == '(') {
             /*XXX*/
-        } else if (isdigit(*p)) {
+        } else if (isstartnum(*p)) {
             *eaten = len - l;
                         
             return NumToken(i, p, l, eaten, v);
@@ -138,7 +139,7 @@ NumToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 gotint:
     v->Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
     v->Val.Int = n;
-            
+
     *eaten += (len - l);
             
     return i;
@@ -149,13 +150,13 @@ gotint:
 static int
 IntToken(char **p, size_t *l, PlincInt *n, int base)
 {
-    n = 0;
+    *n = 0;
     
     while (l) {
         if (isdigit(**p) && (val(**p) < base)) {
             *n *= base;
             *n += val(**p);
-            *p++; *l--;
+            (*p)++; (*l)--;
         } else {
             return TRUE;
         }
@@ -203,16 +204,17 @@ NameToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 
 
 void *
-PlincTokenVal(PlincInterp *i, PlincVal *vi, PlincVal *v)
+PlincTokenVal(PlincInterp *i, PlincVal *vi, PlincVal *vo)
 {
-    size_t l;
+    size_t l, len;
     void *r;
     
-    r = PlincToken(i, v->Val.Ptr, PLINK_SIZE(v), &l, v);
+    r = PlincToken(i, vi->Val.Ptr, PLINC_SIZE(*vi), &l, vo);
     if (r == i) {
-        v->Val.Ptr = (char *)(v->Val.Ptr) + l;
-        v->Flags &= PLINC_SIZE_MASK;
-        v->Flags |= l;
+        len = PLINC_SIZE(*vi);
+        vi->Val.Ptr = (char *)(vi->Val.Ptr) + l;
+        vi->Flags &= ~PLINC_SIZE_MASK;
+        vi->Flags |= (len - l);
     }
        
     return r;

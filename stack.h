@@ -14,10 +14,11 @@ struct _PlincStack {
 #define PLINC_INCREF_VAL(v)     /*v*/
 #define PLINC_DECREF_VAL(v)     /*v*/
 
-#define PLINC_PUSH(s, v)        do { (s).Stack[((s).Len)++] = v; } while (0)
+#define PLINC_PUSH(s, v)        do { PLINC_INCREF_VAL(v); \
+                                (s).Stack[(s).Len] = v; (s).Len++;} while (0)
 #define PLINC_OPPUSH(i, v)      PLINC_PUSH((i)->OpStack, (v))
 
-#define PLINC_POP(s)            do { PLINC_DECREF_VAL((s).Stack[--((s).Len)]); } while (0)
+#define PLINC_POP(s)            do { (s).Len--; PLINC_DECREF_VAL((s).Stack[(s).Len]); } while (0)
 #define PLINC_OPPOP(i)          PLINC_POP((i)->OpStack)
 
 #define PLINC_TOPDOWN(s, n)     ((s).Stack[(s).Len - 1 - (n)])

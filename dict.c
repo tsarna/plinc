@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.1 1999/01/14 01:26:00 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.2 1999/01/14 05:02:15 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -64,14 +64,14 @@ PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
     void *r = NULL;
     PlincUInt j;
 
-    if (!PLINC_CAN_WRITE(d)) {
+    if (!PLINC_CAN_WRITE(*d)) {
         r = i->invalidaccess;
     } else if (d->Len < d->MaxLen) {
         d->Len++;
 
         j = PlincHashPtr(key) % (d->MaxLen);
 
-        while (!PLINC_IS_NULL(&(d->Vals[j].Key))) {
+        while (!PLINC_IS_NULL(d->Vals[j].Key)) {
             j++;
             
             if (j >= d->MaxLen) {
@@ -100,7 +100,7 @@ PlincPrintName(PlincInterp *i, void *name)
 
     s = *n++;
 
-    fprintf(stderr, "%d %*s", s, s, n);
+    fprintf(stderr, "%d %.*s", s, s, n);
 }
 
 
@@ -111,7 +111,7 @@ PlincPrintDict(PlincInterp *i, PlincDict *d)
     int j;
     
     for (j = 0; j < d->MaxLen; j++) {
-        if (!PLINC_IS_NULL(&(d->Vals[j].Key))) {
+        if (!PLINC_IS_NULL(d->Vals[j].Key)) {
             PlincPrintName(i, d->Vals[j].Key.Val.Ptr);
             fprintf(stderr, "\n");
         }
