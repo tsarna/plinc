@@ -15,6 +15,7 @@ struct _PlincStack {
 #define PLINC_PUSH(s, v)        do { PLINC_INCREF_VAL(v); \
                                 (s).Stack[(s).Len] = v; (s).Len++;} while (0)
 #define PLINC_OPPUSH(i, v)      PLINC_PUSH((i)->OpStack, (v))
+#define PLINC_XPUSH(i, v)       PLINC_PUSH((i)->ExecStack, (v))
 
 #define PLINC_POP(s)            do { (s).Len--; PLINC_DECREF_VAL((s).Stack[(s).Len]); } while (0)
 #define PLINC_OPPOP(i)          PLINC_POP((i)->OpStack)
@@ -22,9 +23,11 @@ struct _PlincStack {
 
 #define PLINC_TOPDOWN(s, n)     ((s).Stack[(s).Len - 1 - (n)])
 #define PLINC_OPTOPDOWN(i, n)   PLINC_TOPDOWN((i)->OpStack, (n))
+#define PLINC_XTOPDOWN(i, n)    PLINC_TOPDOWN((i)->ExecStack, (n))
 
 #define PLINC_STACKROOM(s, n)   (((s).Len + (n)) <= (s).MaxLen)
 #define PLINC_OPSTACKROOM(i, n) PLINC_STACKROOM((i)->OpStack, (n))
+#define PLINC_XSTACKROOM(i, n)  PLINC_STACKROOM((i)->ExecStack, (n))
 
 #define PLINC_STACKHAS(s, n)    ((s).Len >= (n))
 #define PLINC_OPSTACKHAS(i, n)  PLINC_STACKHAS((i)->OpStack, (n))
