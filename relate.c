@@ -1,4 +1,4 @@
-/* $Endicor$ */
+/* $Endicor: relate.c,v 1.1 1999/01/17 21:04:54 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -17,7 +17,10 @@ PlincEqual(PlincVal *v1, PlincVal *v2)
     
     switch (t1) {
     case PLINC_TYPE_BOOL:
-        eq = (eq && (v1->Val.Int == v2->Val.Int));
+        eq = (eq &&
+             ((v1->Val.Int && v2->Val.Int)
+             || !(v1->Val.Int || v2->Val.Int)));
+            
         break;
 
     case PLINC_TYPE_ARRAY:
@@ -38,6 +41,7 @@ PlincEqual(PlincVal *v1, PlincVal *v2)
         /* FALLTHRU */
 
     case PLINC_TYPE_STRING:
+        /* XXX invalidaccess on strings */
         eq = FALSE;
 
         if (t1 == PLINC_TYPE_STRING) {
@@ -86,3 +90,67 @@ PlincEqual(PlincVal *v1, PlincVal *v2)
 
     return eq;
 }
+
+
+
+static void *
+testeq(PlincInterp *i, int invert)
+{
+    PlincVal *v1, *v2, v;
+    int j = 0;
+        
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+        v2 = &PLINC_OPTOPDOWN(i, 1);
+        
+        j = PlincEqual(v1, v2);
+        if (invert) {
+            j = !j;
+        }
+
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+        v.Val.Int = j;
+
+        PLINC_OPPOP(i);
+        PLINC_OPPOP(i);
+
+        PLINC_OPPUSH(i, v);
+        
+        return NULL;
+    }
+}
+
+
+static void *
+op_eq(PlincInterp *i)
+{
+    return testeq(i, 0);
+}
+
+
+
+static void *
+op_ne(PlincInterp *i)
+{
+    return testeq(i, 1);
+}
+
+
+
+static PlincOp ops[] = {
+    {"eq",          op_eq},
+    {"ne",          op_ne},
+
+    {NULL,          NULL}
+};
+
+
+
+void
+PlincInitRelationalOps(PlincInterp *i)
+{
+    PlincInitOps(i, ops);
+}
+

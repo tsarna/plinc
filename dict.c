@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.4 1999/01/17 21:04:54 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.5 1999/01/17 22:29:59 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -136,4 +136,52 @@ PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val)
     }
     
     return i->undefined;
+}
+
+
+
+static void *
+op_maxlength(PlincInterp *i)
+{
+    PlincVal *v, nv;
+    PlincDict *d;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) == PLINC_TYPE_DICT) {
+            d = (PlincDict *)(v->Val.Ptr);
+            
+            if (PLINC_CAN_READ(*d)) {
+                return i->invalidaccess;
+            } else {
+                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+                nv.Val.Int = d->MaxLen;
+                
+                PLINC_OPPUSH(i, nv);
+            }
+        } else {
+            return i->typecheck;
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static PlincOp ops[] = {
+    {"maxlength",   op_maxlength},
+
+    {NULL,          NULL}
+};
+
+
+
+void
+PlincInitDictOps(PlincInterp *i)
+{
+    PlincInitOps(i, ops);
 }

@@ -1,4 +1,4 @@
-/* $Endicor: print.c,v 1.1 1999/01/17 21:04:54 tsarna Exp $ */
+/* $Endicor: print.c,v 1.2 1999/01/17 22:29:59 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -7,9 +7,10 @@
 void *
 PlincReprVal(PlincInterp *i, PlincVal *v)
 {
+    int j, k, first = TRUE;
     PlincDict *d;
+    PlincVal *tv;
     char *p;
-    int j;
     
     switch (PLINC_TYPE(*v)) {
     case PLINC_TYPE_INT:
@@ -21,7 +22,27 @@ PlincReprVal(PlincInterp *i, PlincVal *v)
         break;
         
     case PLINC_TYPE_ARRAY:
-        /*XXX*/
+        k = PLINC_SIZE(*v);
+        if (PLINC_LIT(*v)) {
+            fputc('[', stderr);
+        } else {
+            fputc('{', stderr);
+        }
+        for (j = 0; j < k; j++) {
+            if (first) {
+                first = FALSE;
+            } else {
+                fputc(' ', stderr);
+            }
+            
+            tv = &(((PlincVal *)(v->Val.Ptr))[j]);
+            PlincReprVal(i, tv);
+        }
+        if (PLINC_LIT(*v)) {
+            fputc(']', stderr);
+        } else {
+            fputc('}', stderr);
+        }
         break;
         
     case PLINC_TYPE_BOOL:

@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.6 1999/01/17 04:58:16 tsarna Exp $ */
+/* $Endicor: types.h,v 1.7 1999/01/17 22:31:04 tsarna Exp tsarna $ */
 
 #include <sys/types.h>
 
@@ -30,6 +30,8 @@ typedef u_int32_t   PlincUInt;
 #define PLINC_ATTR_DOEXEC   0x04000000
 #define PLINC_TYPE_MASK     0x03F00000
 #define PLINC_SIZE_MASK     0x000FFFFF
+
+#define PLINC_MAXLEN        (PLINC_SIZE_MASK - 1)
 
 #define PLINC_LIT(x)        ((x).Flags & PLINC_ATTR_LIT)
 #define PLINC_EXEC(x)       (!((x).Flags & PLINC_ATTR_LIT))

@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.6 1999/01/17 21:04:54 tsarna Exp $ */
+/* $Endicor: interp.c,v 1.7 1999/01/17 22:29:59 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -29,12 +29,16 @@ PlincNewInterp(size_t heapsize)
         }
         if (ok) {
             i->ScanLevel = 0;
+            i->GotInterrupt = FALSE;
             
             PlincInitErrorNames(i);
             PlincInitVals(i);
             PlincInitStackOps(i);
             PlincInitPrintOps(i);
             PlincInitArithOps(i);
+            PlincInitArrayOps(i);
+            PlincInitDictOps(i);
+            PlincInitRelationalOps(i);
         }
                     
     }
@@ -73,9 +77,11 @@ PlincInitErrorNames(PlincInterp *i)
   fprintf(stderr, "ERR %s @ %p\n", #x, i->x);
 
     DEFERR(dictfull);
-
+    DEFERR(dictstackoverflow);
+    DEFERR(dictstackunderflow);
     DEFERR(execstackoverflow);
 
+    DEFERR(interrupt);
     DEFERR(invalidaccess);
 
     DEFERR(rangecheck);
@@ -86,6 +92,7 @@ PlincInitErrorNames(PlincInterp *i)
     DEFERR(typecheck);
     DEFERR(undefined);
 
+    DEFERR(undefinedresult);
     DEFERR(unmatchedmark);
 
     DEFERR(VMerror);

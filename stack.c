@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.4 1999/01/17 21:06:23 tsarna Exp tsarna $ */
+/* $Endicor: stack.c,v 1.5 1999/01/17 22:29:59 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -102,7 +102,7 @@ op_index(PlincInterp *i)
             if (j < 0) {
                 return i->rangecheck;
             } else if (!PLINC_OPSTACKHAS(i, j + 1)) {
-                return i->stackunderflow;
+                return i->rangecheck;
             } else {
                 PLINC_OPTOPDOWN(i, 0) = PLINC_OPTOPDOWN(i, j + 1);
                 PLINC_INCREF_VAL(PLINC_OPTOPDOWN(i, 0));
@@ -219,6 +219,60 @@ op_cleartomark(PlincInterp *i)
 
 
 
+static void *
+setflags(PlincInterp *i, PlincUInt set, PlincUInt clear)
+{
+    PlincUInt *f;
+    PlincVal *v;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+
+        if (PLINC_CAN_WRITE(*v)) {
+            f = &(v->Flags);
+            if (PLINC_TYPE(*v) == PLINC_TYPE_DICT) {
+                f = &(((PlincDict *)(v->Val.Ptr))->Flags);
+            }
+        
+            *f &= (~clear);
+            *f |= set;
+            
+            return NULL;
+        } else {
+            return i->invalidaccess;
+        }
+    }
+}
+
+
+
+static void *
+op_cvx(PlincInterp *i)
+{
+    return setflags(i, 0, PLINC_ATTR_LIT);
+}
+
+
+
+static void *
+op_cvlit(PlincInterp *i)
+{
+    return setflags(i, PLINC_ATTR_LIT, 0);
+}
+
+
+
+static void *
+op_dot_doexec(PlincInterp *i)
+{
+    return setflags(i, PLINC_ATTR_DOEXEC, PLINC_ATTR_LIT);
+}
+
+
+
+
 static PlincOp ops[] = {
     {"pop",         op_pop},
     {"exch",        op_exch},
@@ -231,6 +285,10 @@ static PlincOp ops[] = {
     {"cleartomark", op_cleartomark},
     {"counttomark", op_counttomark},
 
+    {"cvx",         op_cvx},
+    {"cvlit",       op_cvlit},
+    {".doexec",     op_dot_doexec},
+    
     {NULL,          NULL}
 };
 

@@ -1,9 +1,12 @@
-/* $Endicor: stack.c,v 1.4 1999/01/17 21:06:23 tsarna Exp tsarna $ */
+/* $Endicor: arith.c,v 1.1 1999/01/17 22:29:59 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
 
+#ifdef WITH_REAL
+#include <math.h>
+#endif
 
 
 #ifdef notyet
@@ -56,6 +59,34 @@ op_sub(PlincInterp *i)
 
 
 static void *
+op_abs(PlincInterp *i)
+{
+    PlincVal *v;
+    
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        
+        if (PLINC_TYPE(*v) == PLINC_TYPE_INT) {
+            if (v->Val.Int < 0) {
+                v->Val.Int = -(v->Val.Int);
+            }
+#ifdef WITH_REAL
+        } if (PLINC_TYPE(*v) == PLINC_TYPE_REAL) {
+            v->Val.Real = fabsf(v->Val.Real);
+#endif
+        } else {
+            return i->typecheck;
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_neg(PlincInterp *i)
 {
     PlincVal *v;
@@ -82,6 +113,7 @@ op_neg(PlincInterp *i)
 
 
 static PlincOp ops[] = {
+    {"abs",         op_abs},
     {"neg",         op_neg},
 
     {NULL,          NULL}

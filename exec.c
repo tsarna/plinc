@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.3 1999/01/17 05:14:05 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.4 1999/01/17 21:04:54 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -26,7 +26,13 @@ PlincGo(PlincInterp *i)
     PlincVal *v, nv;
     void *r;
     
+    i->GotInterrupt = FALSE;
+    
     while (i->ExecStack.Len) {
+        if (i->GotInterrupt) {
+            return i->interrupt;
+        }
+
         v = &PLINC_TOPDOWN(i->ExecStack, 0);
 
 pres(i);
