@@ -28,6 +28,36 @@ PlincConcatMatrix(PlincMatrix *r, PlincMatrix *a, PlincMatrix *b)
 
 
 
+PlincReal
+PlincMatrixDeterminant(PlincMatrix *m)
+{
+    return (m->A * m->D) - (m->B * m->C);
+}
+
+
+
+void *
+PlincMatrixInvert(PlincInterp *i, PlincMatrix *inv, PlincMatrix *m)
+{
+    PlincReal det;
+    
+    det = PlincMatrixDeterminant(m);
+    if (det) {
+        inv->A  =  (m->D) / det;
+        inv->B  = -(m->B) / det;
+        inv->C  = -(m->C) / det;
+        inv->D  =  (m->A) / det;
+        inv->Tx =  ((m->C) * (m->Ty) - (m->D) * (m->Tx)) / det;
+        inv->Ty = -((m->A) * (m->Ty) - (m->B) * (m->Tx)) / det;
+        
+        return NULL;
+    } else {
+        return i->undefinedresult;
+    }
+}
+
+
+
 void
 PlincTransformByMatrix(PlincMatrix *m, PlincReal *x, PlincReal *y)
 {
@@ -409,24 +439,20 @@ op_concatmatrix(PlincInterp *i)
         mv1 = &PLINC_OPTOPDOWN(i, 2);
         mv2 = &PLINC_OPTOPDOWN(i, 1);
         mv3 = &PLINC_OPTOPDOWN(i, 0);
-        if (!PLINC_IS_MATRIX(*mv3)) {
-            return i->typecheck;
-        } else {
-            r = PlincGetMatrixVal(i, mv1, &m1);
-            if (!r) {
-                r = PlincGetMatrixVal(i, mv2, &m2);
-            }
-            if (!r) {
-                PlincConcatMatrix(&m3, &m1, &m2);
-                r = PlincSetMatrixVal(i, mv3, &m3);
-            }
-            if (!r) {
-                mrv = *mv3;
-                PLINC_OPPOP(i);
-                PLINC_OPPOP(i);
-                PLINC_OPPOP(i);
-                PLINC_OPPUSH(i, mrv);
-            }
+        r = PlincGetMatrixVal(i, mv1, &m1);
+        if (!r) {
+            r = PlincGetMatrixVal(i, mv2, &m2);
+        }
+        if (!r) {
+            PlincConcatMatrix(&m3, &m1, &m2);
+            r = PlincSetMatrixVal(i, mv3, &m3);
+        }
+        if (!r) {
+            mrv = *mv3;
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, mrv);
         }
         
         return r;
@@ -436,9 +462,9 @@ op_concatmatrix(PlincInterp *i)
 
 
 static void *
-do_transform(PlincInterp *i, int distance)
+do_transform(PlincInterp *i, int distance, int invert)
 {
-    PlincMatrix m, *tm = &m;
+    PlincMatrix m, mi, *tm = &m;
     PlincVal *v, *vx, *vy;
     PlincReal x, y;
     int threearg = FALSE;
@@ -477,6 +503,14 @@ do_transform(PlincInterp *i, int distance)
                 tm = &PLINC_CTM(i);
             }
             
+            if (invert) {
+                r = PlincMatrixInvert(i, &mi, tm);
+                if (r) {
+                    return r;
+                }
+                tm = &mi;
+            }
+            
             if (distance) {
                 PlincDTransformByMatrix(tm, &x, &y);
             } else {
@@ -501,7 +535,7 @@ do_transform(PlincInterp *i, int distance)
 static void *
 op_transform(PlincInterp *i)
 {
-    return do_transform(i, FALSE);
+    return do_transform(i, FALSE, FALSE);
 }
 
 
@@ -509,7 +543,55 @@ op_transform(PlincInterp *i)
 static void *
 op_dtransform(PlincInterp *i)
 {
-    return do_transform(i, TRUE);
+    return do_transform(i, TRUE, FALSE);
+}
+
+
+
+static void *
+op_itransform(PlincInterp *i)
+{
+    return do_transform(i, FALSE, TRUE);
+}
+
+
+
+static void *
+op_idtransform(PlincInterp *i)
+{
+    return do_transform(i, TRUE, TRUE);
+}
+
+
+
+static void *
+op_invertmatrix(PlincInterp *i)
+{
+    PlincVal *mv1, *mv2, mrv;
+    PlincMatrix m1, m2;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        mv1 = &PLINC_OPTOPDOWN(i, 1);
+        mv2 = &PLINC_OPTOPDOWN(i, 0);
+        r = PlincGetMatrixVal(i, mv1, &m1);
+        if (!r) {
+            r = PlincMatrixInvert(i, &m2, &m1);
+        }
+        if (!r) {
+            r = PlincSetMatrixVal(i, mv2, &m2);
+        }
+        if (!r) {
+            mrv = *mv2;
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, mrv);
+        }
+        
+        return r;
+    }
 }
 
 
@@ -528,6 +610,9 @@ static const PlincOp ops[] = {
     {op_concatmatrix,   "concatmatrix"},
     {op_transform,      "transform"},
     {op_dtransform,     "dtransform"},
+    {op_itransform,     "itransform"},
+    {op_idtransform,    "idtransform"},
+    {op_invertmatrix,   "invertmatrix"},
 
     {NULL,              NULL}
 };
