@@ -9,20 +9,6 @@ early = """
 % operators available.  In fact, the point here is to define
 % the operators ususally used in defining stuff.
 
-
-% define the ']' operator.
-% the contained ops need to be .doexec so they're run when called from '}'
-
-(]) [
-    /counttomark load .doexec
-    /array load .doexec
-    /astore load .doexec
-    /exch load .doexec
-    /pop load .doexec
-counttomark array astore cvx exch pop def
-
-
-
 % define the '}' operator
 
 (}) [
@@ -32,11 +18,12 @@ counttomark array astore cvx exch pop def
 ] .doexec def
 
 
-
 % define the 'bind' operator
 /bind {} dup exec def
 
-
+% stack printing operators
+/stack {0 1 count 3 sub {index =} for} bind def
+%/pstack {0 1 count 3 sub {index ==} for} bind def
 
 % define the '>>' operator
 
