@@ -83,8 +83,6 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
                 if (*p == '<') {
                     v->Val.Ptr = i->LeftAngleAngle;
                     goto ok1;
-                } else {
-                    /*XXX base85 and hex strings */
                 }
             }
         } else if (*p == '(') {
@@ -147,7 +145,6 @@ NumToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
                 }
             }
         } else if ((*p == '.') || (*p == 'e') || (*p == 'E')) {
-            /* XXX floats */
         } else {
             goto gotint;            
         }
@@ -373,6 +370,84 @@ StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 void *
 PlincGetOther(PlincInterp *i, PlincFile *f, PlincVal *v, int c, int lit)
 {
+    PlincUInt len, l = 0;
+    void **link, *r;
+    unsigned char *nlen;
+    int go = TRUE;
+    char *p;
+
+    link = PlincBorrowMemory(i->Heap, &len);
+    if (!link) {
+        return i->VMerror;
+    }
+    
+    nlen = (void *)(link + 1);
+    p = (char *)(nlen + 1);
+
+    do {
+        switch (c) {
+        case PLINC_IOERR:
+            return i->ioerror;
+            
+        case '(':   case ')':   case '<':   case '>':   case '[':
+        case ']':   case '{':   case '}':   case '/':   case '%':
+            c = PlincUnRead(f, c);
+            if (c) {
+                return i->ioerror;
+            }
+            /* FALLTHROUGH */
+
+        case PLINC_EOF:
+        case '\0':  case '\t':  case '\n':
+        case '\r':  case '\f':  case ' ':
+            go = FALSE;
+            break;
+
+        default:
+            if (l < len) {
+                *p++ = c;
+                l++;
+            }
+        }
+
+        if (go) {
+            c = PlincRead(f);
+        }
+    } while (go);
+    
+    if (!lit) {
+        r = PlincParseNum(i, v, (nlen+1), l);
+        if (!r || (r != i->syntaxerror)) {
+            return r;
+        }
+    }
+    
+    *nlen = min(l, PLINC_MAXNAMELEN);
+    v->Flags = PLINC_TYPE_NAME | l;
+    r = PlincFindName(i->Heap->HeapHeader, (nlen+1), *nlen);
+    if (r) {
+        PlincBorrowAbort(i->Heap, link, len);
+        v->Val.Ptr = r;
+    } else {
+        link = PlincBorrowFinalize(i->Heap, link, len, l + sizeof(void *) + 1);
+        if (link) {
+            v->Val.Ptr = (link + 1);
+            PLINC_LINK(v->Val.Ptr) = i->Heap->HeapHeader->Names;
+            i->Heap->HeapHeader->Names = v->Val.Ptr;
+        } else {
+            return i->VMerror;
+        }
+    }
+    
+    if (lit == 1) {
+        v->Flags |= PLINC_ATTR_LIT;
+    } else if (lit == 2) {
+        r = PlincLoadDict(i, v, v);
+        if (r) {
+            return r;
+        }
+    }
+    
     return NULL;
 }
 
@@ -392,7 +467,7 @@ void (*initfunc)(PlincDecodeFile *, PlincFile *, PlincUInt))
         return i->VMerror;
     }
     
-    l = PlincReadString((PlincFile *)&df, p, len);
+    l = PlincReadString((PlincFile *)(void *)(&df), p, len);
     if (l == PLINC_IOERR) {
         return i->ioerror;
     } else if (l == PLINC_EOF) {
@@ -525,16 +600,11 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
                 goto done;
             } else if (c == '/') {
                 c = PlincRead(f);
-                if (c == PLINC_IOERR) {
-                    r = i->ioerror;
+                r = PlincGetOther(i, f, &v, c, 2);
+                if (r) {
                     goto done;
                 } else {
-                    r = PlincGetOther(i, f, &v, c, 2);
-                    if (r) {
-                        goto done;
-                    } else {
-                        goto value;
-                    }
+                    goto value;
                 }
             } else {
                 r = PlincGetOther(i, f, &v, c, 1);
@@ -577,7 +647,6 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
         ;
        
     } while (1);
-
 
     return NULL; /* XXX */
 }
