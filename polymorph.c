@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.7 1999/01/25 04:35:58 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.8 1999/01/26 04:27:04 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -52,6 +52,28 @@ op_copy(PlincInterp *i)
                 return i->rangecheck;
             } else {
                 memcpy(v0->Val.Ptr, v1->Val.Ptr, PLINC_SIZE(*v1));
+                v.Flags = v1->Flags;
+                v.Val.Ptr = v0->Val.Ptr;
+                
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+                PLINC_OPPUSH(i, v);
+                
+                return NULL;
+            }
+        } else if (PLINC_TYPE(*v0) == PLINC_TYPE_ARRAY) {
+            v1 = &PLINC_OPTOPDOWN(i, 1);
+            
+            if (PLINC_TYPE(*v1) != PLINC_TYPE_ARRAY) {
+                return i->typecheck;
+            } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_WRITE(*v0)) {
+                return i->invalidaccess;
+            } else if (PLINC_SIZE(*v1) > PLINC_SIZE(*v0)) {
+                return i->rangecheck;
+            } else {
+                memcpy(v0->Val.Ptr, v1->Val.Ptr,
+                    PLINC_SIZE(*v1) * sizeof(PlincVal));
+
                 v.Flags = v1->Flags;
                 v.Val.Ptr = v0->Val.Ptr;
                 

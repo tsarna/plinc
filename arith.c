@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.8 1999/01/25 18:03:54 tsarna Exp tsarna $ */
+/* $Endicor: arith.c,v 1.9 1999/01/26 04:27:04 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -302,6 +302,44 @@ op_rrand(PlincInterp *i)
 
 
 
+static void *
+op_bitshift(PlincInterp *i)
+{
+    PlincVal *v0, *v1, v;
+    int j;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v0 = &PLINC_OPTOPDOWN(i, 1);
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+
+        if ((PLINC_TYPE(*v0) != PLINC_TYPE_INT)
+        ||  (PLINC_TYPE(*v1) != PLINC_TYPE_INT)) {
+            return i->typecheck;
+        } else {
+            v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
+            
+            j = v1->Val.Int;
+            if (j > 0) {
+                v.Val.Int = (v0->Val.Int) << j;
+            } else if (j < 0) {
+                v.Val.Int = (v0->Val.Int) >> (-j);
+            } else {
+                v.Val.Int = v0->Val.Int;
+            }
+
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, v);
+
+            return NULL;
+        }
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {op_add,        "add"},
     {op_idiv,       "idiv"},
@@ -313,6 +351,7 @@ static const PlincOp ops[] = {
     {op_rand,       "rand"},
     {op_srand,      "srand"},
     {op_rrand,      "rrand"},
+    {op_bitshift,   "bitshift"},
 
     {NULL,          NULL}
 };

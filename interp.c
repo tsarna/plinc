@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.20 1999/01/26 04:27:04 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.21 1999/01/27 01:46:41 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -99,6 +99,7 @@ PlincInitErrorNames(PlincInterp *i)
     DEFERR(invalidaccess);
     DEFERR(invalidexit);
     DEFERR(invalidstop);
+    DEFERR(invalidfileaccess);
 
     DEFERR(limitcheck);
     DEFERR(nocurrentpoint);
@@ -130,7 +131,7 @@ PlincInitVals(PlincInterp *i)
     i->x = d; v.Flags = d->Flags; v.Val.Ptr = d; \
     PlincPutDictName(i, i->systemdict, name, &v);
 
-    DEFDICT(systemdict, 75);
+    DEFDICT(systemdict, 100);
     PLINC_PUSH(i->DictStack, v);
     i->DictStack.MinLen = 1;
 
