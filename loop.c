@@ -1,4 +1,4 @@
-/* $Endicor: loop.c,v 1.3 1999/01/24 03:49:13 tsarna Exp $ */
+/* $Endicor: loop.c,v 1.4 1999/01/27 03:16:56 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 #include <stdlib.h>
@@ -51,19 +51,27 @@ op_dot_looper(PlincInterp *i)
 
             if (PLINC_TYPE(*n) == PLINC_TYPE_STRING) {
                 if (x->Val.Int < PLINC_SIZE(*n)) {
-                    char *p;
-                    
                     if (!PLINC_OPSTACKROOM(i, 1)) {
                         return i->stackoverflow;
                     }
                     
-                    p = PLINC_TOPDOWN(i->ExecStack, 3).Val.Ptr;
-
-                    v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-                    v.Val.Int = p[x->Val.Int++];
-
+                    PLINC_OPPUSH(i, ((PlincVal *)(n->Val.Ptr))[x->Val.Int++]);
+                    PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
+                } else {
+                    PLINC_POP(i->ExecStack); /* .looper */
+                    PLINC_POP(i->ExecStack); /* proc */
+                    PLINC_POP(i->ExecStack); /* count */
+                    PLINC_POP(i->ExecStack); /* object */
+                }
+            } else if (PLINC_TYPE(*n) == PLINC_TYPE_ARRAY) {
+                if (x->Val.Int < PLINC_SIZE(*n)) {
+                    if (!PLINC_OPSTACKROOM(i, 1)) {
+                        return i->stackoverflow;
+                    }
+                    
+                    v = ((PlincVal *)(n->Val.Ptr))[x->Val.Int++];
+                    
                     PLINC_OPPUSH(i, v);
-
                     PLINC_PUSH(i->ExecStack, PLINC_TOPDOWN(i->ExecStack, 1));
                 } else {
                     PLINC_POP(i->ExecStack); /* .looper */

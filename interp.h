@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.22 1999/01/27 01:46:41 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.23 1999/01/27 03:16:56 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -69,6 +69,7 @@ struct _PlincInterp {
     void           *invalidstop;
     void           *invalidfileaccess;
 
+    void           *ioerror;
     void           *limitcheck;
     void           *nocurrentpoint;
     void           *rangecheck;
