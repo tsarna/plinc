@@ -1,10 +1,6 @@
-/* $Endicor: dict.c,v 1.16 1999/01/25 04:35:58 tsarna Exp $ */
-
-
 #include <plinc/interp.h>
 
 #include <stdlib.h>
-#include <stdio.h> /*XXX*/
 
 
 void *
@@ -244,6 +240,7 @@ op_maxlength(PlincInterp *i)
                 nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
                 nv.Val.Int = d->MaxLen;
                 
+                PLINC_OPPOP(i);
                 PLINC_OPPUSH(i, nv);
             } else {
                 return i->invalidaccess;
