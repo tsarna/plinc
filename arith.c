@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.2 1999/01/18 00:54:54 tsarna Exp $ */
+/* $Endicor: arith.c,v 1.3 1999/01/20 20:16:56 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -143,7 +143,7 @@ op_neg(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"idiv",        op_idiv},
 
     {"abs",         op_abs},

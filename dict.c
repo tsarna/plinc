@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.10 1999/01/19 23:10:35 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.11 1999/01/20 01:36:21 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -363,7 +363,7 @@ op_end(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"dict",            op_dict},
     {"maxlength",       op_maxlength},
     {"begin",           op_begin},

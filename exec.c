@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.9 1999/01/20 05:31:25 tsarna Exp $ */
+/* $Endicor: exec.c,v 1.10 1999/01/20 20:16:56 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -141,12 +141,12 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
 
 
 void *
-PlincExecStr(PlincInterp *i, char *s)
+PlincExecStr(PlincInterp *i, const char *s)
 {
     PlincVal v;
     
-    v.Flags = PLINC_TYPE_STRING | strlen(s);
-    v.Val.Ptr = s;
+    v.Flags = PLINC_TYPE_STRING | PLINC_ATTR_NOWRITE | strlen(s);
+    v.Val.Ptr = (char *)s;
 
     PLINC_PUSH(i->ExecStack, v);
     
@@ -248,7 +248,7 @@ op_if(PlincInterp *i)
 }
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"{",           op_rbrace},
     {".decscan",    op_dot_decscan},
     {"exec",        op_exec},

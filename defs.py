@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.3 1999/01/20 05:44:31 tsarna Exp tsarna $
+# $Endicor: defs.py,v 1.4 1999/01/20 20:16:56 tsarna Exp tsarna $
 
 
 early = """
@@ -53,7 +53,7 @@ def defs(name, s):
     s = re.sub(r"\s*\}\s*", "}", s)
     s = re.sub(r"\s*\[\s*", "[", s)
     s = re.sub(r"\s*\]\s*", "]", s)
-    s = 'static char %s_defs[] = "%s\\n";\n' % (name, s)
+    s = 'static const char %s_defs[] = "%s\\n";\n' % (name, s)
     return s
 
 sys.stdout.write(defs("early", early))

@@ -35,4 +35,4 @@ for c in range(0, 256, 8):
     vv.append("    " + string.join(v, ', '))
 
 vv = string.join(vv, ",\n")
-print "static short _toktab[256] = {\n%s\n};" % vv
+print "static const short _toktab[256] = {\n%s\n};" % vv

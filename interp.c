@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.12 1999/01/20 01:36:21 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.13 1999/01/20 04:18:31 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -164,7 +164,7 @@ PlincInitVals(PlincInterp *i)
 
 
 void
-PlincInitOps(PlincInterp *i, PlincOp *o)
+PlincInitOps(PlincInterp *i, const PlincOp *o)
 {
     PlincHeap *h = i->Heap;
     PlincVal v;
@@ -174,7 +174,7 @@ PlincInitOps(PlincInterp *i, PlincOp *o)
     
     while (o->Name) {
         name = DEFNAME(o->Name);
-        v.Val.Op = o;
+        v.Val.Op = (PlincOp *)o;
     
         PlincPutDictName(i, i->systemdict, name, &v);
 

@@ -1,4 +1,4 @@
-/* $Endicor: print.c,v 1.2 1999/01/17 22:29:59 tsarna Exp $ */
+/* $Endicor: print.c,v 1.3 1999/01/18 00:54:54 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -169,7 +169,7 @@ op_pstack(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"==",       op_equalsequals},
     {"pstack",   op_pstack},
     

@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.12 1999/01/19 23:10:35 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.13 1999/01/20 01:36:21 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -112,7 +112,7 @@ void           *PlincGetDict(PlincInterp *i, PlincDict *d,
                     PlincVal *key, PlincVal *val);
 void           *PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val);
 
-void            PlincInitOps(PlincInterp *i, PlincOp *o);
+void            PlincInitOps(PlincInterp *i, const PlincOp *o);
 void            PlincInitStackOps(PlincInterp *i);
 void            PlincInitPrintOps(PlincInterp *i);
 void            PlincInitArithOps(PlincInterp *i);
@@ -129,7 +129,7 @@ void           *PlincReprVal(PlincInterp *i, PlincVal *v);
 void            PlincClearN(PlincInterp *i, int n);
 
 void           *PlincGo(PlincInterp *i);
-void           *PlincExecStr(PlincInterp *i, char *s);
+void           *PlincExecStr(PlincInterp *i, const char *s);
 
 
 #endif /* PLINC_INTERP_H */

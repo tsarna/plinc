@@ -1,4 +1,4 @@
-/* $Endicor: relate.c,v 1.1 1999/01/17 21:04:54 tsarna Exp $ */
+/* $Endicor: relate.c,v 1.2 1999/01/18 00:54:54 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h> /*XXX*/
@@ -139,7 +139,7 @@ op_ne(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"eq",          op_eq},
     {"ne",          op_ne},
 

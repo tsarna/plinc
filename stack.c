@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.7 1999/01/18 05:13:40 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.8 1999/01/20 20:16:56 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -359,7 +359,7 @@ op_xcheck(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"pop",         op_pop},
     {"exch",        op_exch},
     {"dup",         op_dup},

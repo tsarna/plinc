@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.2 1999/01/18 00:54:54 tsarna Exp tsarna $ */
+/* $Endicor: vm.c,v 1.1 1999/01/18 05:13:40 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -30,7 +30,7 @@ op_vmstatus(PlincInterp *i)
 
 
 
-static PlincOp ops[] = {
+static const PlincOp ops[] = {
     {"vmstatus",    op_vmstatus},
 
     {NULL,          NULL}
