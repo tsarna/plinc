@@ -116,7 +116,7 @@ op_write(PlincInterp *i)
         return i->stackunderflow;
     } else {
         v1 = &PLINC_OPTOPDOWN(i, 1);
-        v2 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
         
         if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE)
         ||  (PLINC_TYPE(*v2) != PLINC_TYPE_INT)) {
