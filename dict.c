@@ -275,7 +275,7 @@ op_begin(PlincInterp *i)
 
             d = v->Val.Ptr;
 
-            if (PLINC_DOEXEC(*d)) {
+            if (PLINC_DOEXEC(*d)) { /* XXX */
                 /* fix flags and lock dictstack */
                 d->Flags &= ~PLINC_ATTR_DOEXEC;
                 d->Flags |= PLINC_ATTR_LIT;
@@ -338,7 +338,6 @@ op_known(PlincInterp *i)
     } else {
         v0 = &PLINC_OPTOPDOWN(i, 1);
         v1 = &PLINC_OPTOPDOWN(i, 0);
-        r = i->typecheck;
 
         if (PLINC_TYPE(*v0) != PLINC_TYPE_DICT) {
             return i->typecheck;
