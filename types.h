@@ -1,8 +1,6 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.11 1999/01/22 18:59:10 tsarna Exp $ */
-
 #include <sys/types.h>
 
 
@@ -22,6 +20,8 @@
 typedef long                PlincInt;
 typedef unsigned long       PlincUInt;
 typedef u_int32_t           PlincUInt32;
+
+#define PLINCINT_MAX        0x7fffffff
 
 #define PLINC_ATTR_LIT      0x80000000
 #define PLINC_ATTR_NOREAD   0x40000000

@@ -1,5 +1,3 @@
-/* $Endicor: interp.h,v 1.25 1999/01/27 20:15:36 tsarna Exp $ */
-
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
 
@@ -42,8 +40,7 @@ struct _PlincInterp {
     int             SaveLevel;
     
     /* random number generator */
-    unsigned int    Seed;
-    unsigned int    State;
+    unsigned int    RandState;
 
     /* commonly needed names */
     void           *LeftBracket;
