@@ -1,4 +1,6 @@
 #include <plinc/token.h>
+#include <plinc/file.h>
+
 #include <stdio.h> /*XXX*/
 #include <string.h>
 
@@ -52,7 +54,7 @@ pres(i);
                     fprintf(stderr, "ERR %s\n", (char *)r);
                     return r;
                 } else {
-                    PLINC_POP(i->ExecStack);
+                    PLINC_XPOP(i);
                     continue;
                 }
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_NAME) {
@@ -89,7 +91,7 @@ pres(i);
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_FILE) {
                 continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_NULL) {
-                PLINC_POP(i->ExecStack);
+                PLINC_XPOP(i);
 
                 continue;
             }
@@ -100,7 +102,7 @@ pres(i);
         }
 
         PLINC_OPPUSH(i, *v);
-        PLINC_POP(i->ExecStack);
+        PLINC_XPOP(i);
     }
 
     return NULL;
@@ -114,7 +116,7 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
     if (r == i) {
         if (!PLINC_SIZE(*v)) {
             /* if we exhausted the string/array, pop it off */
-            PLINC_POP(i->ExecStack);
+            PLINC_XPOP(i);
         }
 
         if ((PLINC_EXEC(*nv) && (i->ScanLevel == 0)
@@ -139,7 +141,7 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
         return r;
     } else {
         /* nothing left in string, pop it */
-        PLINC_POP(i->ExecStack);
+        PLINC_XPOP(i);
     }
 
     return NULL;
@@ -157,7 +159,145 @@ PlincExecStr(PlincInterp *i, const char *s)
 
     PLINC_PUSH(i->ExecStack, v);
 
+#if 1
+    return PlincExec(i);
+#else
     return PlincGo(i);
+#endif
+}
+
+
+
+/***@@@*************************************/
+
+
+
+static void *
+PushVal(PlincInterp *i, PlincVal *v)
+{
+    if (PLINC_IS_ARRAY(*v) || PLINC_LIT(*v)) {
+        if (PLINC_OPSTACKROOM(i, 1)) {
+            PLINC_OPPUSH(i, *v);
+            return i;
+        } else {
+            return i->stackoverflow;
+        }
+    } else {
+        if (PLINC_STACKROOM(i->ExecStack, 1)) {
+            PLINC_PUSH(i->ExecStack, *v);
+            return i;
+        } else {
+            return i->execstackoverflow;
+        }
+    }
+}
+
+
+
+void *
+PlincExec(PlincInterp *i)
+{
+    void *r = NULL;
+    int depth = 0;
+    PlincVal *v, nv;
+    PlincStrFile sf;
+    
+    depth = i->ExecStack.Len;
+
+    while (i->ExecStack.Len >= depth) {
+        v = &PLINC_TOPDOWN(i->ExecStack, 0);
+
+pres(i);
+
+        switch (v->Flags & (PLINC_TYPE_MASK|PLINC_ATTR_LIT|PLINC_ATTR_NOEXEC)) {
+        case PLINC_TYPE_STRING:
+            PlincInitStrFile(&sf, v);
+            r = PlincGetToken(i, (PlincFile *)(void *)(&sf), &nv);
+            v->Val.Ptr = (char *)(v->Val.Ptr) + sf.Cur;
+            PLINC_SET_SIZE(*v, PLINC_SIZE(*v) - sf.Cur);
+            if (r == i) {
+                r = NULL;
+            } else if (!r) {
+                r = PushVal(i, &nv);
+            }
+            break;
+
+
+        case PLINC_TYPE_FILE:
+            r = PlincGetToken(i, (PlincFile *)(v->Val.Ptr), &nv);
+            if (r == i) {
+                r = NULL;
+            } else if (!r) {
+                r = PushVal(i, &nv);
+            }
+            break;
+
+
+        case PLINC_TYPE_ARRAY:
+            if (PLINC_SIZE(*v)) {
+                nv = *(PlincVal *)(v->Val.Ptr);
+                PLINC_INCREF_VAL(nv);
+
+                v->Val.Ptr = ((PlincVal *)(v->Val.Ptr)) + 1;
+                PLINC_SET_SIZE(*v, PLINC_SIZE(*v) - 1);
+
+                if (!PLINC_SIZE(*v)) {
+                    PLINC_XPOP(i);
+                }
+                r = PushVal(i, &nv);
+            }
+            break;
+
+	
+        case PLINC_TYPE_NAME:
+            r = PlincLoadDict(i, v, &nv);
+            if (!r) {
+                PLINC_INCREF_VAL(nv);
+                *v = nv;
+                continue;
+            }
+            break;
+            
+
+	case PLINC_TYPE_OP:
+	    r = v->Val.Op->Func(i);
+	    if (r == i) {
+	        continue;
+	    }
+	    break;
+            
+
+        case PLINC_TYPE_STRING|PLINC_ATTR_NOEXEC:
+        case PLINC_TYPE_FILE|PLINC_ATTR_NOEXEC:
+        case PLINC_TYPE_ARRAY|PLINC_ATTR_NOEXEC:
+            r = i->invalidaccess;
+            break;
+
+
+        default:
+            if (PLINC_OPSTACKROOM(i, 1)) {
+                PLINC_OPPUSH(i, *v);
+                PLINC_XPOP(i);
+            } else {
+                r = i->stackoverflow;
+            }
+
+            break;
+        }
+
+        if (r == i) {
+            r = NULL;
+            continue;
+        }
+        
+        while (r) {
+            return r;
+        }
+
+        PLINC_XPOP(i);
+    }
+    
+    return NULL;
 }
 
 
@@ -235,7 +375,7 @@ op_stop(PlincInterp *i)
             if (v->Val.Op == &ops[0]) {
                 while (j) {
                     while (j) {
-                        PLINC_POP(i->ExecStack);
+                        PLINC_XPOP(i);
                         j--;
                     }
                         
