@@ -346,7 +346,7 @@ static void *
 op_writehexstring(PlincInterp *i)
 {
     PlincVal *v1, *v2;
-    PlincEHexFile hf;
+    PlincEncFile hf;
     PlincFile *f;
     int r;
      
@@ -366,7 +366,7 @@ op_writehexstring(PlincInterp *i)
             PlincInitHexEncode(&hf, f, 0);
             r = PlincWriteString((PlincFile *)&hf, v2->Val.Ptr, PLINC_SIZE(*v2));
             r = (r < PLINC_SIZE(*v2)) ? PLINC_IOERR : \
-                plinc_hex_flushout((PlincFile *)&hf);
+                plinc_enc_flushout((PlincFile *)&hf);
 
             if (r == PLINC_IOERR) {
                 return i->ioerror;
