@@ -9,6 +9,9 @@ static void *
 op_copy(PlincInterp *i)
 {
     PlincVal *v0, *v1, v;
+    PlincDict *d0, *d1;
+    PlincInt ix = 0;
+    void *r = NULL;
     int j;
 
     if (!PLINC_OPSTACKHAS(i, 1)) {
@@ -38,8 +41,6 @@ op_copy(PlincInterp *i)
                     PLINC_INCREF_VAL(PLINC_OPTOPDOWN(i, j));
                 }
             }
-            
-            return NULL;
         } else if (PLINC_TYPE(*v0) == PLINC_TYPE_STRING) {
             v1 = &PLINC_OPTOPDOWN(i, 1);
             
@@ -57,8 +58,6 @@ op_copy(PlincInterp *i)
                 PLINC_OPPOP(i);
                 PLINC_OPPOP(i);
                 PLINC_OPPUSH(i, v);
-                
-                return NULL;
             }
         } else if (PLINC_TYPE(*v0) == PLINC_TYPE_ARRAY) {
             v1 = &PLINC_OPTOPDOWN(i, 1);
@@ -79,13 +78,42 @@ op_copy(PlincInterp *i)
                 PLINC_OPPOP(i);
                 PLINC_OPPOP(i);
                 PLINC_OPPUSH(i, v);
+            }
+        } else if (PLINC_TYPE(*v0) == PLINC_TYPE_DICT) {
+            v1 = &PLINC_OPTOPDOWN(i, 1);
+            d0 = (PlincDict *)(v0->Val.Ptr);
+            d1 = (PlincDict *)(v1->Val.Ptr);
+            
+            if (PLINC_TYPE(*v1) != PLINC_TYPE_DICT) {
+                return i->typecheck;
+            } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_WRITE(*v0)) {
+                return i->invalidaccess;
+            } else if ((d0->Len > 0) || (d1->Len > PLINC_SIZE(*v0))) {
+                return i->rangecheck;
+            } else {
+                ix = 0;
+                while (!r && (ix < d1->MaxLen)) {
+                    if (!PLINC_IS_NULL(d1->Vals[ix].Key)) {
+                        r = PlincPutDict(i, d0,
+                            &(d1->Vals[ix].Key), &(d1->Vals[ix].Val));
+                    }
+                    ix++;
+
+                }
+
+                v.Flags = v1->Flags;
+                v.Val.Ptr = d0;
                 
-                return NULL;
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+                PLINC_OPPUSH(i, v);
             }
         } else {
             return i->typecheck;
         }
     }
+
+    return r;
 }
 
 
