@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.13 1999/01/20 01:36:21 tsarna Exp $ */
+/* $Endicor: interp.h,v 1.14 1999/01/20 20:30:12 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -121,6 +121,7 @@ void            PlincInitStringOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);
+void            PlincInitLoopOps(PlincInterp *i);
 void            PlincInitPolymorphOps(PlincInterp *i);
 void            PlincInitVMOps(PlincInterp *i);
 

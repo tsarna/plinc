@@ -1,4 +1,4 @@
-/* $Endicor: arith.c,v 1.3 1999/01/20 20:16:56 tsarna Exp tsarna $ */
+/* $Endicor: arith.c,v 1.4 1999/01/20 20:30:12 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -10,7 +10,7 @@
 
 
 static void *
-op_idiv(PlincInterp *i)
+idiv_mod(PlincInterp *i, int op)
 {
     PlincVal *v1, *v2, v;
 
@@ -27,7 +27,11 @@ op_idiv(PlincInterp *i)
             return i->undefinedresult;
         } else {
             v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-            v.Val.Int = v2->Val.Int / v1->Val.Int;
+            if (op) {
+                v.Val.Int = v2->Val.Int / v1->Val.Int;
+            } else {
+                v.Val.Int = v2->Val.Int % v1->Val.Int;
+            }
 
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
@@ -36,6 +40,22 @@ op_idiv(PlincInterp *i)
             return NULL;
         }
     }
+}
+
+
+
+static void *
+op_idiv(PlincInterp *i)
+{
+    return idiv_mod(i, TRUE);
+}
+
+
+
+static void *
+op_mod(PlincInterp *i)
+{
+    return idiv_mod(i, FALSE);
 }
 
 
@@ -145,6 +165,7 @@ op_neg(PlincInterp *i)
 
 static const PlincOp ops[] = {
     {"idiv",        op_idiv},
+    {"mod",         op_mod},
 
     {"abs",         op_abs},
     {"neg",         op_neg},

@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.13 1999/01/20 04:18:31 tsarna Exp $ */
+/* $Endicor: interp.c,v 1.14 1999/01/20 20:30:12 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -44,6 +44,7 @@ PlincNewInterp(size_t heapsize)
             PlincInitDictOps(i);
             PlincInitRelationalOps(i);
             PlincInitControlOps(i);
+            PlincInitLoopOps(i);
             PlincInitPolymorphOps(i);
             PlincInitVMOps(i);
             

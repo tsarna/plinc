@@ -1,4 +1,4 @@
-/* $Endicor: array.c,v 1.6 1999/01/19 23:10:35 tsarna Exp $ */
+/* $Endicor: array.c,v 1.7 1999/01/20 20:30:12 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
@@ -104,6 +104,45 @@ op_array(PlincInterp *i)
 
 
 static void *
+op_aload(PlincInterp *i)
+{
+    PlincVal v;
+    int l;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_TYPE(v) != PLINC_TYPE_ARRAY) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(v)) {
+            return i->invalidaccess;
+        } else if (!PLINC_OPSTACKROOM(i, PLINC_SIZE(v))) {
+            return i->stackoverflow;
+        } else {
+            l = PLINC_SIZE(v);
+            
+            memcpy(&PLINC_OPTOPDOWN(i, 0), v.Val.Ptr,
+                   sizeof(PlincVal) * l);
+
+            i->OpStack.Len += l;
+                   
+            while (l) {
+                l--;
+                
+                PLINC_INCREF_VAL(PLINC_OPTOPDOWN(i, l));
+            }
+
+            PLINC_OPTOPDOWN(i, 0) = v;
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+static void *
 op_astore(PlincInterp *i)
 {
     PlincVal *v;
@@ -128,7 +167,8 @@ op_astore(PlincInterp *i)
                     memcpy(v->Val.Ptr, &PLINC_OPTOPDOWN(i, l),
                         sizeof(PlincVal) * l);
 
-                    PlincClearN(i, l + 1);
+                    i->OpStack.Len -= (l + 1);
+                    
                     PLINC_OPPUSH(i, *v);
                 }
             }
@@ -143,6 +183,7 @@ op_astore(PlincInterp *i)
 static const PlincOp ops[] = {
     {"array",       op_array},
 
+    {"aload",       op_aload},
     {"astore",      op_astore},
 
     {NULL,          NULL}
