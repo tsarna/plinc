@@ -1,8 +1,9 @@
-/* $Endicor: polymorph.c,v 1.11 1999/01/28 17:39:22 tsarna Exp tsarna $ */
+/* $Endicor: polymorph.c,v 1.12 1999/01/28 19:38:39 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 
 

@@ -1,8 +1,8 @@
-/* $Endicor: heap.c,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
+/* $Endicor: heap.c,v 1.2 1999/01/12 23:13:28 tsarna Exp $ */
 
 
 #include <stdlib.h>
-#include <stdio.h> /*XXX*/
+#include <string.h>
 
 #include <plinc/heap.h>
 
