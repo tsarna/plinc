@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.1 1999/01/17 02:11:46 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.2 1999/01/17 04:58:16 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -35,6 +35,14 @@ pres(i);
         if ((PLINC_EXEC(*v) && !(i->ScanLevel)) || PLINC_DOEXEC(*v)) {
             if (!PLINC_CAN_EXEC(*v)) {
                 return i->invalidaccess;
+            } else if (PLINC_TYPE(*v) == PLINC_TYPE_OP) {
+                r = v->Val.Op->Func(i);
+                if (r) {
+                    return r;
+                } else {
+                    PLINC_POP(i->ExecStack);
+                    continue;
+                }
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_NAME) {
                 continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_ARRAY) {

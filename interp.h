@@ -1,4 +1,4 @@
-/* $Endicor: interp.h,v 1.3 1999/01/17 02:11:46 tsarna Exp tsarna $ */
+/* $Endicor: interp.h,v 1.4 1999/01/17 04:58:16 tsarna Exp tsarna $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -61,13 +61,14 @@ struct _PlincInterp {
     void           *syntaxerror;
 
     void           *typecheck;
+    void           *undefined;
 
     void           *VMerror;
 };
 
 
-typedef struct _PlincOps PlincOps;
-struct _PlincOps {
+typedef struct _PlincOp PlincOp;
+struct _PlincOp {
     char    *Name;
     void  *(*Func)(PlincInterp *);
 };
@@ -87,7 +88,7 @@ void           *PlincPutDictName(PlincInterp *i, PlincDict *d,
 void            PlincPrintName(PlincInterp *i, void *name);
 void            PlincPrintDict(PlincInterp *i, PlincDict *d);
 
-void            PlincInitOps(PlincInterp *i, PlincOps *o);
+void            PlincInitOps(PlincInterp *i, PlincOp *o);
 void            PlincInitStackOps(PlincInterp *i);
 
 void           *PlincGo(PlincInterp *i);

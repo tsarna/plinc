@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.3 1999/01/14 05:02:15 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.4 1999/01/17 02:11:46 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -81,6 +81,7 @@ PlincInitErrorNames(PlincInterp *i)
     DEFERR(syntaxerror);
 
     DEFERR(typecheck);
+    DEFERR(undefined);
 
     DEFERR(VMerror);
 }
@@ -141,7 +142,7 @@ PlincInitVals(PlincInterp *i)
 
 
 void
-PlincInitOps(PlincInterp *i, PlincOps *o)
+PlincInitOps(PlincInterp *i, PlincOp *o)
 {
     PlincHeap *h = i->Heap;
     PlincVal v;
