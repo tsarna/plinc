@@ -141,6 +141,10 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
             }
         }
 
+        if (!(d->MaxLen)) {
+            return r;
+        }
+        
         oj = j = PlincHashVal(key) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key)) {
