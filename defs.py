@@ -25,6 +25,11 @@ early = """
 /stack {0 1 count 3 sub {index =} for} bind def
 %/pstack {0 1 count 3 sub {index ==} for} bind def
 
+% interactive-related stuff
+/prompt {
+    (PL) print count 0 ne {(<) print count =only} if (> ) print flush
+} bind def
+
 % define the '>>' operator
 
 (>>) {
