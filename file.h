@@ -22,14 +22,23 @@ struct _PlincFileOps {
 };
 
 struct _PlincFile {
-    PlincFileOps    *Ops;
-    void            *Ptr;
+    const PlincFileOps      *Ops;
+    void                    *Ptr;
 
     /* Other data here in "subclasses" */
 };
 
 
-extern PlincFileOps plinc_closed_ops;
+struct _PlincAsciiFltFile {
+    const PlincFileOps      *Ops;
+    PlincFile               *Ptr;
+    PlincUInt                Flags;
+#define PLINC_FLTF_CLOSETARGET  0x1
+#define PLINC_FLTF_EODMARK      0x2    
+} PlincAsciiFltFile;
+
+
+extern const PlincFileOps plinc_closed_ops;
 
 PlincInt    plinc_io_bytesavailable(PlincFile *f);
 PlincInt    plinc_io_readstring(PlincFile *f, char *buf, PlincInt l);
