@@ -1,4 +1,4 @@
-/* $Endicor: stack.c,v 1.2 1999/01/14 02:55:42 tsarna Exp $ */
+/* $Endicor: stack.c,v 1.3 1999/01/17 21:04:54 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -157,16 +157,16 @@ op_count(PlincInterp *i)
 
 
 static PlincOp ops[] = {
-    "pop",      op_pop,
-    "exch",     op_exch,
-    "dup",      op_dup,
+    {"pop",     op_pop},
+    {"exch",    op_exch},
+    {"dup",     op_dup},
 
-    "index",    op_index,
+    {"index",   op_index},
 
-    "clear",    op_clear,
-    "count",    op_count,
+    {"clear",   op_clear},
+    {"count",   op_count},
 
-    NULL,       NULL
+    {NULL,      NULL}
 };
 
 

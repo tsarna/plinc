@@ -1,4 +1,4 @@
-/* $Endicor: token.c,v 1.2 1999/01/17 04:58:16 tsarna Exp $ */
+/* $Endicor: token.c,v 1.3 1999/01/17 21:04:54 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 
@@ -93,7 +93,7 @@ ok1:
     v->Flags = PLINC_TYPE_NAME;
     l--;   
     
-ok:
+/*ok:*/
     *eaten = len - l;
 
     return i;        
