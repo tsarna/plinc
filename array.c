@@ -68,6 +68,37 @@ PlincPutArray(PlincInterp *i, PlincVal *a, PlincUInt ix, PlincVal *v)
 
 
 static void *
+op_rsquare(PlincInterp *i)
+{
+    PlincVal nv;
+    PlincInt l;
+
+    l = PlincCountToMark(i);
+    if (l < 0) {
+        return i->unmatchedmark;
+    } else {
+        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_ARRAY | l;
+        nv.Val.Ptr = PlincNewArray(i->Heap, l);
+
+        if (nv.Val.Ptr) {
+            while (l) {
+                l--;
+                PlincPutArray(i, nv.Val.Ptr, l, &PLINC_OPTOPDOWN(i, 0));
+                PLINC_OPPOP(i);
+            }
+            PLINC_OPPOP(i); /* remove mark */
+            PLINC_OPPUSH(i, nv);
+        } else {
+            return i->VMerror;
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+static void *
 op_array(PlincInterp *i)
 {
     PlincVal *v, nv;
@@ -183,8 +214,8 @@ op_astore(PlincInterp *i)
 
 
 static const PlincOp ops[] = {
+    {op_rsquare,    "]"},
     {op_array,      "array"},
-
     {op_aload,      "aload"},
     {op_astore,     "astore"},
 
