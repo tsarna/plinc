@@ -129,11 +129,11 @@ op_log(PlincInterp *i)
 
 
 
-static double
-to_radians(float f)
+double
+PlincToRadians(float f)
 {
     double d = f;
-    
+
     return (d/360.0 - floor(d/360.0)) * 2.0 * M_PI;
 }
 
@@ -142,7 +142,7 @@ to_radians(float f)
 static float
 cos_deg(float f)
 {
-    return cos(to_radians(f));
+    return cos(PlincToRadians(f));
 }
 
 
@@ -150,7 +150,7 @@ cos_deg(float f)
 static float
 sin_deg(float f)
 {
-    return sin(to_radians(f));
+    return sin(PlincToRadians(f));
 }
 
 
