@@ -2,7 +2,6 @@
 #include <plinc/version.h>
 
 #include <string.h>
-#include <stdio.h>
 
 
 typedef struct _PlincString PlincString;
@@ -161,7 +160,6 @@ op_search(PlincInterp *i)
             if (l1 >= l2) {
                 for (ix = 0; ix <= (l1 - l2); ix++) {
                     if (!memcmp(p1+ix, p2, l2)) {
-fprintf(stderr, "found @ %d\n", ix);
                         PLINC_OPPOP(i);
                         PLINC_OPPOP(i);
                 
