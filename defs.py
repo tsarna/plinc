@@ -2,8 +2,6 @@
 
 
 early = r"""
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EARLY DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % define the 'bind' operator
 
 /bind {} dup exec def
