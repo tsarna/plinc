@@ -1,13 +1,9 @@
-/* $Endicor: dict.c,v 1.3 1999/01/17 04:58:16 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.4 1999/01/17 21:04:54 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
-
-#ifdef DEBUG
-#include <stdio.h>
-#endif
 
 
 void *
@@ -97,30 +93,25 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
     void *r = i->undefined;
     PlincUInt j, oj;
 
-fprintf(stderr, "XXX: Key is ");PlincReprVal(i, key);fprintf(stderr, "\n");
     if (!PLINC_CAN_READ(*d)) {
         r = i->invalidaccess;
     } else {
         oj = j = PlincHashPtr(key->Val.Ptr) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key)) {
-fprintf(stderr, "XXX: Comparing to ");PlincReprVal(i, &(d->Vals[j].Key));fprintf(stderr, "\n");
             if (PlincEqual(&(d->Vals[j].Key), key)) {
                 *val = d->Vals[j].Val;
                 
-fprintf(stderr, "XXX: Match!\n");
                 return NULL;
             }
 
             j++;
             
             if (j >= d->MaxLen) {
-fprintf(stderr, "XXX: Dict lookup looping\n");
                 j = 0;
             }
             
             if (j == oj) {
-fprintf(stderr, "XXX: Back to starting point\n");
                 break;
             }
         }
@@ -138,7 +129,6 @@ PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val)
     int j;
     
     for (j = 0; j < i->DictStack.Len; j++) {
-fprintf(stderr, "XXX: looking n dict @ %p\n", PLINC_TOPDOWN(i->DictStack, j).Val.Ptr);
         r = PlincGetDict(i, PLINC_TOPDOWN(i->DictStack, j).Val.Ptr, key, val);
         if (r != i->undefined) {
             return r;
@@ -147,36 +137,3 @@ fprintf(stderr, "XXX: looking n dict @ %p\n", PLINC_TOPDOWN(i->DictStack, j).Val
     
     return i->undefined;
 }
-
-
-
-#ifdef DEBUG
-
-void
-PlincPrintName(PlincInterp *i, void *name)
-{
-    unsigned char *n = name;
-    size_t s;
-
-    s = *n++;
-
-    fprintf(stderr, "%d %.*s", s, (int)s, n);
-}
-
-
-
-void
-PlincPrintDict(PlincInterp *i, PlincDict *d)
-{
-    int j;
-    
-    for (j = 0; j < d->MaxLen; j++) {
-        if (!PLINC_IS_NULL(d->Vals[j].Key)) {
-            PlincPrintName(i, d->Vals[j].Key.Val.Ptr);
-            fprintf(stderr, "\n");
-        }
-    }
-}
-
-
-#endif
