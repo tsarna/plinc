@@ -1,7 +1,5 @@
-/* $Endicor: string.c,v 1.4 1999/01/24 03:47:42 tsarna Exp $ */
-
-
 #include <plinc/interp.h>
+#include <plinc/version.h>
 
 #include <string.h>
 
@@ -104,9 +102,34 @@ op_cvn(PlincInterp *i)
 
 
 
+static void *
+op_version(PlincInterp *i)
+{
+    PlincVal nv;
+    
+    if (!PLINC_OPSTACKROOM(i, 1)) {
+        return i->stackoverflow;
+    } else {
+        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | strlen(PLINC_VERSION);
+        nv.Val.Ptr = PlincNewString(i->Heap, strlen(PLINC_VERSION));
+        
+        if (nv.Val.Ptr) {   
+            memcpy(nv.Val.Ptr, PLINC_VERSION, strlen(PLINC_VERSION));
+            PLINC_OPPUSH(i, nv);
+
+            return NULL;
+        } else {
+            return i->VMerror;
+        }
+    }
+}
+
+
+
 static const PlincOp ops[] = {
     {op_string,     "string"},
     {op_cvn,        "cvn"},
+    {op_version,    "version"},
 
     {NULL,          NULL}
 };
