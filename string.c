@@ -2,6 +2,7 @@
 #include <plinc/version.h>
 
 #include <string.h>
+#include <stdio.h>
 
 
 typedef struct _PlincString PlincString;
@@ -130,6 +131,74 @@ op_anchorsearch(PlincInterp *i)
 }
 
 
+                
+static void *
+op_search(PlincInterp *i)
+{
+    PlincVal *v1, *v2, nv;
+    PlincUInt32 l1, l2, ix;
+    char *p1, *p2;
+        
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else if (!PLINC_OPSTACKROOM(i, 2)) {
+        return i->stackoverflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_STRING)
+        &&  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_READ(*v2)){
+            return i->invalidaccess;
+        } else {
+            p1 = v1->Val.Ptr;
+            p2 = v2->Val.Ptr;
+            l1 = PLINC_SIZE(*v1);
+            l2 = PLINC_SIZE(*v2);
+
+            if (l1 >= l2) {
+                for (ix = 0; ix <= (l1 - l2); ix++) {
+                    if (!memcmp(p1+ix, p2, l2)) {
+fprintf(stderr, "found @ %d\n", ix);
+                        PLINC_OPPOP(i);
+                        PLINC_OPPOP(i);
+                
+                        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | (l1 - l2 - ix);
+                        nv.Val.Ptr = (p1 + ix + l2);
+                        PLINC_OPPUSH(i, nv);
+
+                        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | (l2);
+                        nv.Val.Ptr = (p1 + ix);
+                        PLINC_OPPUSH(i, nv);
+
+                        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | (ix);
+                        nv.Val.Ptr = p1;
+                        PLINC_OPPUSH(i, nv);
+
+                        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                        nv.Val.Int = TRUE;
+                        PLINC_OPPUSH(i, nv);    
+
+                        return NULL;
+                    }
+                }                    
+            }
+            
+            PLINC_OPPOP(i);
+
+            nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+            nv.Val.Int = FALSE;
+                    
+            PLINC_OPPUSH(i, nv);
+        }
+    }
+
+    return NULL;
+}
+
+
 
 static void *
 op_cvn(PlincInterp *i)
@@ -185,6 +254,7 @@ op_version(PlincInterp *i)
 static const PlincOp ops[] = {
     {op_string,         "string"},
     {op_anchorsearch,   "anchorsearch"},
+    {op_search,         "search"},
     {op_cvn,            "cvn"},
     {op_version,        "version"},
 
