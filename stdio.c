@@ -22,7 +22,21 @@ stdio_close(PlincFile *f)
 
 
 static int
-stdio_flush(PlincFile *f)
+stdio_readtoeof(PlincFile *f)
+{
+    int c = 0;
+    
+    do {
+        c = fgetc((FILE *)(f->Ptr));
+    } while (c != EOF);
+    
+    return 0;
+}
+
+
+
+static int
+stdio_flushout(PlincFile *f)
 {
     int c = 0;
     
@@ -37,7 +51,7 @@ stdio_flush(PlincFile *f)
 
 
 static int
-stdio_reset(PlincFile *f)
+stdio_wpurge(PlincFile *f)
 {
 #if defined(__NetBSD__)
     int c = 0;
@@ -127,8 +141,10 @@ stdio_writestring(PlincFile *f, char *buf, PlincInt l)
 
 const PlincFileOps stdio_ops = {
     stdio_close,
-    stdio_flush,
-    stdio_reset,
+    stdio_readtoeof,
+    stdio_flushout,
+    plinc_io_flushops,
+    stdio_wpurge,
     plinc_io_bytesavailable,
     stdio_read,
     stdio_readstring,

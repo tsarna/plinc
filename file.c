@@ -407,7 +407,7 @@ op_flush(PlincInterp *i)
     
     f = (PlincFile *)(i->StdOut.Val.Ptr);
 
-    return ((PlincFlush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+    return ((PlincFlushOut(f)) == PLINC_IOERR) ? i->ioerror : NULL;
 }
 
 
@@ -428,7 +428,14 @@ op_flushfile(PlincInterp *i)
             return i->typecheck;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            r = ((PlincFlush(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            if (PLINC_CAN_WRITE(*v)) {
+                r = ((PlincFlushOut(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            } else if (PLINC_CAN_READ(*v)) {
+                r = ((PlincReadToEOF(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            }
+            if (r) {
+                return r;
+            }
 
             PLINC_OPPOP(i);
         }
@@ -455,7 +462,15 @@ op_resetfile(PlincInterp *i)
             return i->typecheck;
         } else {
             f = (PlincFile *)(v->Val.Ptr);
-            r = ((PlincReset(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            if (PLINC_CAN_WRITE(*v)) {
+                r = ((PlincWPurge(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            }
+            if (!r && PLINC_CAN_READ(*v)) {
+                r = ((PlincRPurge(f)) == PLINC_IOERR) ? i->ioerror : NULL;
+            }
+            if (r) {
+                return r;
+            }
 
             PLINC_OPPOP(i);
         }
@@ -649,8 +664,10 @@ closed_readline(PlincFile *f, char *buf, PlincInt *l)
 
 const PlincFileOps plinc_closed_ops = {
     closed_file,                /* close */
-    closed_file,                /* flush */
-    closed_file,                /* reset */
+    closed_file,                /* readtoeof */
+    closed_file,                /* flushout */
+    closed_file,                /* rpurge */
+    closed_file,                /* wpurge */
     plinc_io_bytesavailable,    /* bytesavailable */
     closed_file,                /* read  */
     closed_readorwritestring,   /* readstring */
