@@ -26,6 +26,11 @@ PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
         i->RandState = 1;
         i->GotInterrupt = FALSE;
         
+#ifdef WITH_SIMPLE_CTM
+        i->DefaultMatrix = PlincDefaultMatrix;
+        i->CTM = i->DefaultMatrix;
+#endif
+
         PlincInitErrorNames(i);
         PlincInitTypeNames(i);
         PlincInitVals(i);
@@ -36,6 +41,9 @@ PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
         PlincInitCvtOps(i);
 #ifdef WITH_REAL
         PlincInitRealOps(i);
+#endif
+#ifdef WITH_MATRIX
+        PlincInitMatrixOps(i);
 #endif
         PlincInitArrayOps(i);
         PlincInitStringOps(i);
