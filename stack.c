@@ -298,6 +298,7 @@ static void *
 copystack(PlincInterp *i, PlincStack *s)
 {
     PlincVal *v;
+    void *r;
     int j;
     
     if (!PLINC_OPSTACKHAS(i, 0)) {
@@ -309,10 +310,11 @@ copystack(PlincInterp *i, PlincStack *s)
         } else if ((s->Len) > PLINC_SIZE(*v)) {
             return i->rangecheck;
         } else {
-            memcpy(v->Val.Ptr, s->Stack, s->Len * sizeof(PlincVal));
-            
             for (j = 0; j < s->Len; j++) {
-                PLINC_INCREF_VAL(s->Stack[j]);
+                r = PlincPutArray(i, v->Val.Ptr, j, &(s->Stack[j]));
+                if (r) {
+                    return r;
+                }
             }
             
             /* adjust to initial subrange */
