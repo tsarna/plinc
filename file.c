@@ -180,6 +180,53 @@ op_readstring(PlincInterp *i)
 
 
 static void *
+op_readhexstring(PlincInterp *i)
+{
+    PlincVal *v1, *v2, nv;
+    PlincDHexFile hf;
+    PlincFile *f;
+    PlincInt r, s;
+     
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE) 
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_READ(*v1) || !PLINC_CAN_WRITE(*v2)) {
+            return i->invalidaccess;
+        } else {
+            f = (PlincFile *)(v1->Val.Ptr);
+            PlincInitHexDecode(&hf, f, 0);
+            s = PLINC_SIZE(*v2);
+            r = PlincReadString((PlincFile *)&hf, v2->Val.Ptr, s);
+            if (r == PLINC_IOERR) {
+                return i->ioerror;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+
+                nv = *v2;
+                nv.Flags &= ~PLINC_SIZE_MASK;
+                nv.Flags |= r;
+                PLINC_OPPUSH(i, nv);
+
+                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+                nv.Val.Int = (r == s) ? TRUE : FALSE;
+                PLINC_OPPUSH(i, nv);
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
+
+static void *
 op_readline(PlincInterp *i)
 {
     PlincVal *v1, *v2, nv;
@@ -299,7 +346,7 @@ static void *
 op_writehexstring(PlincInterp *i)
 {
     PlincVal *v1, *v2;
-    PlincHexFile hf;
+    PlincEHexFile hf;
     PlincFile *f;
     int r;
      
@@ -309,8 +356,7 @@ op_writehexstring(PlincInterp *i)
         v1 = &PLINC_OPTOPDOWN(i, 1);
         v2 = &PLINC_OPTOPDOWN(i, 0);
         
-        if ((PLINC_TYPE(*v1) != PLINC_TYPE_FILE)
-        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_STRING)) {
+        if (!PLINC_IS_FILE(*v1) || !PLINC_IS_STRING(*v2)) {
             return i->typecheck;
         } else if ((!PLINC_CAN_WRITE(*v1)) || (!PLINC_CAN_READ(*v2))) {
             return i->invalidaccess;
@@ -575,6 +621,7 @@ static const PlincOp ops[] = {
     {op_closefile,      "closefile"},
     {op_read,           "read"},
     {op_readstring,     "readstring"},
+    {op_readhexstring,  "readhexstring"},
     {op_readline,       "readline"},
     {op_write,          "write"},
     {op_writestring,    "writestring"},
@@ -636,7 +683,24 @@ plinc_ioerr_readline(PlincFile *f, char *buf, PlincInt *l)
 
 
 /*
- *  default implementation of readtoeof/flushout/purge for a file
+ *  default implementation of readtoeof
+ */
+int
+plinc_io_readeof(PlincFile *f)
+{
+    int c;
+    
+    do {
+        c = PlincRead(f);
+    } while (c >= 0);
+    
+    return (c == PLINC_EOF) ? 0 : c;
+}
+
+
+
+/*
+ *  default no-op implementation of readtoeof/flushout/purge for a file
  */
 int
 plinc_io_flushops(PlincFile *f)
@@ -653,6 +717,106 @@ PlincInt
 plinc_io_bytesavailable(PlincFile *f)
 {
     return -1;
+}
+
+
+
+/*
+ *  default readstring implementation for a file that only provides read
+ */
+PlincInt
+plinc_io_readstring(PlincFile *f, char *buf, PlincInt l)
+{
+    PlincInt r = 0;
+    int c;
+    
+    while (l) {
+        c = PlincRead(f);
+        if (c == PLINC_IOERR) {
+            return PLINC_IOERR;
+        } else if (c == PLINC_EOF) {
+            return r;
+        } else {
+            *buf++ = (char)c;
+            l--; r++;
+        }
+    }
+    
+    return r;
+}
+
+
+
+/*
+ *  default readline implementation for a file that only provides read
+ *
+ *  l is a pointer to the size of the buffer on input, and
+ *  is changed to the ammount actually read on return.
+ *
+ *  returns: TRUE if read a line, PLINC_EOF if hit EOF before EOL,
+ *  PLINC_IOERR on error, FALSE if filled buffer before hitting EOL.
+ */
+PlincInt
+plinc_io_readline(PlincFile *f, char *buf, PlincInt *l)
+{
+    int c, len;
+    
+    len = *l;
+    *l = 0;
+    
+    while (len) {
+        c = PlincRead(f);
+        if (c < 0) { /* IOERR or EOF */
+            return c;
+        } else {
+            if (c == '\n') {
+                return TRUE;
+            } else if (c == '\r') {
+                c = PlincRead(f);
+                if (c == PLINC_EOF) {
+                    return TRUE; /* CR was EOL */
+                } else if (c == PLINC_IOERR) {
+                    return c;
+                } else if (c == '\n') {
+                    return TRUE;
+                } else {
+                    /* CR was EOL, whatever we got starts the next line */
+                    c = PlincUnRead(f, c);
+                    if (c) {
+                        return c;
+                    }
+                    return TRUE;
+                }
+            } else {
+                *buf++ = (char)c;
+                (*l)++; len--;
+            }
+        }
+    }
+    
+    return FALSE;   /* filled before EOL */
+}
+
+
+
+/*
+ *  default writestring implementation for a file that only provides write
+ */
+PlincInt
+plinc_io_writestring(PlincFile *f, char *buf, PlincInt l)
+{
+    PlincInt c, r = 0;
+    
+    while (l) {
+        c = PlincWrite(f, *buf++);
+        if (c) {
+            return c;
+        } else {
+            l--; r++;
+        }
+    }
+    
+    return r;
 }
 
 
