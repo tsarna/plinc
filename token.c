@@ -1,4 +1,4 @@
-/* $Endicor: token.c,v 1.4 1999/01/17 21:06:23 tsarna Exp $ */
+/* $Endicor: token.c,v 1.5 1999/01/19 23:10:35 tsarna Exp $ */
 
 #include <plinc/token.h>
 
@@ -37,6 +37,8 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 
     *eaten = 0;
 
+    v->Flags = 0;
+
     while (l) {
         if (isspace(*p)) {
             do {
@@ -60,15 +62,22 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
             goto ok1;
         } else if (*p == '{') {
             v->Val.Ptr = i->LeftBrace;
-            goto ok1;
+            goto ok2;
         } else if (*p == '}') {
             v->Val.Ptr = i->RightBrace;
-            goto ok1;
+            goto ok2;
         } else if (*p == '>') {
-            /* XXX >> */
-            return i->syntaxerror;
+            p++; l--;
+            if (l) {
+                if  (*p == '>') {
+                    v->Val.Ptr = i->RightAngleAngle;
+                    goto ok1;
+                } else {
+                    return i->syntaxerror;
+                }
+            }
         } else if (*p == '<') {
-            l--;
+            p++; l--;
             if (l) {
                 if (*p == '<') {
                     v->Val.Ptr = i->LeftAngleAngle;
@@ -95,8 +104,11 @@ PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 
     return NULL;
 
+ok2:
+    v->Flags |= PLINC_ATTR_DOEXEC;
+
 ok1:
-    v->Flags = PLINC_TYPE_NAME;
+    v->Flags |= PLINC_TYPE_NAME;
     l--;   
     
 /*ok:*/

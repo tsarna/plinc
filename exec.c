@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.7 1999/01/18 21:16:20 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.8 1999/01/18 22:05:42 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -36,6 +36,7 @@ PlincGo(PlincInterp *i)
         v = &PLINC_TOPDOWN(i->ExecStack, 0);
 
 pres(i);
+if (PLINC_DOEXEC(*v)){fprintf(stderr, ">>>DOEXEC IN LOOP, ");PlincReprVal(i, v);fputs("\n", stderr);}
         if ((PLINC_EXEC(*v) && !(i->ScanLevel)) || PLINC_DOEXEC(*v)) {
             if (!PLINC_CAN_EXEC(*v)) {
                 return i->invalidaccess;
@@ -103,12 +104,17 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
             PLINC_POP(i->ExecStack);
         }
 
-        /* XXX scanlevel */
-        if (PLINC_EXEC(*nv) 
-        && (PLINC_DOEXEC(*v) || (PLINC_TYPE(*v) != PLINC_TYPE_ARRAY))) {
+if (PLINC_DOEXEC(*nv)){fprintf(stderr, ">>>DOEXEC LOPPED OBJECT\n");PlincReprVal(i, v);fputs("\n", stderr);}
+
+        if ((PLINC_EXEC(*nv) && (i->ScanLevel == 0) 
+        && (PLINC_TYPE(*nv) != PLINC_TYPE_ARRAY))
+        || PLINC_DOEXEC(*nv)) {
             if (!PLINC_STACKROOM(i->ExecStack, 1)) {
                 return i->execstackoverflow;
             }
+            
+            /* ensure this string continues to run */
+            v->Flags |= PLINC_ATTR_DOEXEC;
                     
             PLINC_PUSH(i->ExecStack, *nv);
         } else {
@@ -141,6 +147,39 @@ PlincExecStr(PlincInterp *i, char *s)
     PLINC_PUSH(i->ExecStack, v);
     
     return PlincGo(i);
+}
+
+
+
+static void *
+op_rbrace(PlincInterp *i)
+{
+    PlincVal v;
+    
+    if (PLINC_OPSTACKROOM(i, 1)) {
+        i->ScanLevel++;
+        
+        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;
+        PLINC_OPPUSH(i, v); 
+
+        return NULL;
+    } else {
+        return i->stackoverflow;
+    }
+}
+
+
+
+static void *
+op_dot_decscan(PlincInterp *i)
+{
+    if (i->ScanLevel) {
+        i->ScanLevel--;
+    
+        return NULL;
+    } else {
+        return i->syntaxerror;
+    }
 }
 
 
@@ -206,6 +245,8 @@ op_if(PlincInterp *i)
 
 
 static PlincOp ops[] = {
+    {"{",           op_rbrace},
+    {".decscan",    op_dot_decscan},
     {"exec",        op_exec},
     {"if",          op_if},
 

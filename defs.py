@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor$
+# $Endicor: defs.py,v 1.1 1999/01/20 01:36:21 tsarna Exp $
 
 
 early = """
@@ -13,16 +13,21 @@ early = """
 % define the ']' operator.
 
 systemdict (]) [
-    /counttomark load
-    /array load
-    /astore load
-    /exch load
-    /pop load
+    /counttomark load .doexec
+    /array load .doexec
+    /astore load .doexec
+    /exch load .doexec
+    /pop load .doexec
 counttomark array astore cvx exch pop put
 
-% define the 
-%systemdict({)[/mark load/.incscan load].doexec put
-%systemdict(})[/.decscan load(])load/cvx load].doexec put
+% define the '}' operator
+
+systemdict (}) [
+    /.decscan load .doexec
+    (]) load .doexec
+    /cvx load .doexec
+] .doexec put
+
 %systemdict/def{currentdict 3 1 roll put}put
 %/store{exch dup where {3 1 roll exch put} {exch undefined} ifelse}bind def
 
