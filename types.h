@@ -21,6 +21,7 @@
 typedef long                PlincInt;
 typedef unsigned long       PlincUInt;
 typedef u_int32_t           PlincUInt32;
+typedef float               PlincReal;
 
 #define PLINCINT_MAX        0x7fffffff
 
@@ -61,6 +62,10 @@ typedef u_int32_t           PlincUInt32;
 
 #define PLINC_IS_NULL(x)    (PLINC_TYPE(x) == PLINC_TYPE_NULL)
 #define PLINC_IS_MARK(x)    (PLINC_TYPE(x) == PLINC_TYPE_MARK)
+#define PLINC_IS_INT(x)     (PLINC_TYPE(x) == PLINC_TYPE_INT)
+#define PLINC_IS_REAL(x)    (PLINC_TYPE(x) == PLINC_TYPE_REAL)
+#define PLINC_IS_NUM(x)     (PLINC_IS_INT(x) || PLINC_IS_REAL(x))
+#define PLINC_NUM_VAL(x)    (PLINC_IS_INT(x) ? ((x).Val.Int) : ((x).Val.Real))
 
 /* forward */
 struct _PlincInterp;
