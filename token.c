@@ -1,4 +1,4 @@
-/* $Endicor: token.c,v 1.1 1999/01/17 02:11:46 tsarna Exp tsarna $ */
+/* $Endicor: token.c,v 1.2 1999/01/17 04:58:16 tsarna Exp $ */
 
 #include <plinc/token.h>
 
@@ -16,7 +16,7 @@
 
 #define isspace(c)      (_toktab[(unsigned char)(c)] & WS)
 #define isspecial(c)    (_toktab[(unsigned char)(c)] & SP)
-#define isendname(c)    (_toktab[(unsigned char)(c)] & SP|WS)
+#define isendname(c)    (_toktab[(unsigned char)(c)] & (SP|WS))
 #define isstartnum(c)   (_toktab[(unsigned char)(c)] & SN)
 #define isdigit(c)      (_toktab[(unsigned char)(c)] & DG)
 #define val(c)          (_toktab[(unsigned char)(c)] & 0xFF)

@@ -1,4 +1,4 @@
-/* $Endicor: dict.c,v 1.2 1999/01/14 05:02:15 tsarna Exp $ */
+/* $Endicor: dict.c,v 1.3 1999/01/17 04:58:16 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
@@ -90,6 +90,66 @@ PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
 }
 
 
+
+void *
+PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
+{
+    void *r = i->undefined;
+    PlincUInt j, oj;
+
+fprintf(stderr, "XXX: Key is ");PlincReprVal(i, key);fprintf(stderr, "\n");
+    if (!PLINC_CAN_READ(*d)) {
+        r = i->invalidaccess;
+    } else {
+        oj = j = PlincHashPtr(key->Val.Ptr) % (d->MaxLen);
+
+        while (!PLINC_IS_NULL(d->Vals[j].Key)) {
+fprintf(stderr, "XXX: Comparing to ");PlincReprVal(i, &(d->Vals[j].Key));fprintf(stderr, "\n");
+            if (PlincEqual(&(d->Vals[j].Key), key)) {
+                *val = d->Vals[j].Val;
+                
+fprintf(stderr, "XXX: Match!\n");
+                return NULL;
+            }
+
+            j++;
+            
+            if (j >= d->MaxLen) {
+fprintf(stderr, "XXX: Dict lookup looping\n");
+                j = 0;
+            }
+            
+            if (j == oj) {
+fprintf(stderr, "XXX: Back to starting point\n");
+                break;
+            }
+        }
+    }
+
+    return r;
+}
+
+
+
+void *
+PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val)
+{
+    void *r;
+    int j;
+    
+    for (j = 0; j < i->DictStack.Len; j++) {
+fprintf(stderr, "XXX: looking n dict @ %p\n", PLINC_TOPDOWN(i->DictStack, j).Val.Ptr);
+        r = PlincGetDict(i, PLINC_TOPDOWN(i->DictStack, j).Val.Ptr, key, val);
+        if (r != i->undefined) {
+            return r;
+        }
+    }
+    
+    return i->undefined;
+}
+
+
+
 #ifdef DEBUG
 
 void
@@ -100,7 +160,7 @@ PlincPrintName(PlincInterp *i, void *name)
 
     s = *n++;
 
-    fprintf(stderr, "%d %.*s", s, s, n);
+    fprintf(stderr, "%d %.*s", s, (int)s, n);
 }
 
 

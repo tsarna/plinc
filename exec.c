@@ -1,7 +1,10 @@
-/* $Endicor: exec.c,v 1.2 1999/01/17 04:58:16 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.3 1999/01/17 05:14:05 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
+
+
+static void *ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv);
 
 
 void
@@ -9,17 +12,12 @@ pres(PlincInterp *i)
 {
     int j;
     
-    fprintf(stderr, "Exec Stack len %d\n", i->ExecStack.Len);
+    fprintf(stderr, "XXX: Exec Stack len %d\n", i->ExecStack.Len);
     for (j = 0; j < i->ExecStack.Len; j++) {
-        if (PLINC_TYPE(PLINC_TOPDOWN(i->ExecStack, j)) == PLINC_TYPE_STRING) {
-            fprintf(stderr, "(%s)/%d\n",
-             PLINC_TOPDOWN(i->ExecStack, j).Val.Ptr,
-             PLINC_SIZE(PLINC_TOPDOWN(i->ExecStack, j)));
-        } else if (PLINC_TYPE(PLINC_TOPDOWN(i->ExecStack, j)) == PLINC_TYPE_INT) {
-            fprintf(stderr, "%d\n", PLINC_TOPDOWN(i->ExecStack, j).Val.Int);
-        }
+        fprintf(stderr, "XXX: ");
+        PlincReprVal(i, &PLINC_TOPDOWN(i->ExecStack, j));
+        fprintf(stderr, "\n");
     }
-    fprintf(stderr, "\n");
 }
 
 void *
@@ -44,31 +42,24 @@ pres(i);
                     continue;
                 }
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_NAME) {
-                continue;
+                r = PlincLoadDict(i, v, &nv);
+                if (r) {
+                    return r;
+                } else {
+                    PLINC_INCREF_VAL(nv);
+                    *v = nv;
+                    
+                    continue;
+                }
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_ARRAY) {
                 continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_STRING) {
                 r = PlincTokenVal(i, v, &nv);
-                if (r == i) {
-                    if (!PLINC_STACKROOM(i->ExecStack, 1)) {
-                        return i->execstackoverflow;
-                    }
-                    
-                    PLINC_PUSH(i->ExecStack, nv);
-                    
-                    if (!PLINC_SIZE(*v)) {
-                        /* if we exhausted the string, pop it off */ 
-                        PLINC_POP(i->ExecStack);
-                    }
-                    continue;
-                } else if (r) {
+                r = ValFromComp(i, r, v, &nv);
+                if (r) {
                     return r;
-                } else {
-                    /* nothing left in string, pop it */
-                    PLINC_POP(i->ExecStack);
-
-                    continue;
                 }
+                continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_FILE) {
                 continue;
             }
@@ -77,11 +68,47 @@ pres(i);
         if (!PLINC_OPSTACKROOM(i, 1)) {
             return i->stackoverflow;
         }
-fprintf(stderr, "pushing\n");
         
         PLINC_OPPUSH(i, *v);
         PLINC_POP(i->ExecStack);
     }
+
+    return NULL;
+}
+
+
+
+static void *
+ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
+{
+    if (r == i) {
+        if ((PLINC_TYPE(*nv) == PLINC_TYPE_ARRAY)
+        || !PLINC_EXEC(*nv)) {
+            if (!PLINC_OPSTACKROOM(i, 1)) {
+                return i->stackoverflow;
+            }
+        
+            PLINC_OPPUSH(i, *nv);
+        } else {
+            if (!PLINC_STACKROOM(i->ExecStack, 1)) {
+                return i->execstackoverflow;
+            }
+                    
+            PLINC_PUSH(i->ExecStack, *nv);
+        }        
+
+        if (!PLINC_SIZE(*v)) {
+            /* if we exhausted the string/array, pop it off */ 
+            PLINC_POP(i->ExecStack);
+        }
+    } else if (r) {
+        return r;
+    } else {
+        /* nothing left in string, pop it */
+        PLINC_POP(i->ExecStack);
+    }
+    
+    return NULL;
 }
 
 

@@ -1,4 +1,4 @@
-/* $Endicor: main.c,v 1.2 1999/01/14 05:02:15 tsarna Exp $ */
+/* $Endicor: main.c,v 1.3 1999/01/17 04:58:16 tsarna Exp $ */
 
 #include <plinc/interp.h>
 #include <stdio.h>
@@ -9,6 +9,8 @@ int
 main(int argc, char *argv[])
 {
     PlincInterp *i;
+    char buf[256];
+    void *r;
     
     i = PlincNewInterp(HEAPSIZE);
     if (i) {
@@ -16,7 +18,14 @@ main(int argc, char *argv[])
 
         PlincPrintDict(i, i->systemdict);
 
-        PlincExecStr(i, "1 2 3 4 ");
+        while (fgets(buf, sizeof(buf), stdin)) {
+            r = PlincExecStr(i, buf);
+            if (r) {
+                fprintf(stderr, "ERROR: %p ", r);
+                fwrite(((char*)(r))+1, *(unsigned char *)(r), 1, stderr);
+                fprintf(stderr, "\n");
+            }
+        }
         
         PlincFreeInterp(i);
     } else {
