@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.2 1999/01/20 04:18:31 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.3 1999/01/20 20:30:12 tsarna Exp $ */
 
 #include <plinc/interp.h>
 
@@ -22,12 +22,46 @@ op_put(PlincInterp *i)
 
         if (PLINC_TYPE(*v2) == PLINC_TYPE_DICT) {
             r = PlincPutDict(i, (PlincDict *)(v2->Val.Ptr), v1, v0);
+        } else {
+            return i->typecheck;
         }
 
         if (!r) {
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
             PLINC_OPPOP(i);
+        }
+        
+        return r;
+    }
+}
+
+
+
+static void *
+op_get(PlincInterp *i)
+{
+    PlincVal *v0, *v1, v;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v0 = &PLINC_OPTOPDOWN(i, 1);
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+        r = i->typecheck;
+
+        if (PLINC_TYPE(*v0) == PLINC_TYPE_DICT) {
+            r = PlincGetDict(i, (PlincDict *)(v0->Val.Ptr), v1, &v);
+        } else {
+            return i->typecheck;
+        }
+
+        if (!r) {
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+
+            PLINC_OPPUSH(i, v);
         }
         
         return r;
@@ -69,6 +103,7 @@ op_length(PlincInterp *i)
 
 static const PlincOp ops[] = {
     {"put",         op_put},
+    {"get",         op_get},
     {"length",      op_length},
 
     {NULL,          NULL}
