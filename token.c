@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
+#if 0
 #define WS  0x8000      /* Whitespace */
 #define SP  0x4000      /* Special */
 #define SN  0x2000      /* Start Number */
@@ -224,24 +224,6 @@ NameToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 }
 
 
-void *
-PlincTokenVal(PlincInterp *i, PlincVal *vi, PlincVal *vo)
-{
-    size_t l, len;
-    void *r;
-    
-    r = PlincToken(i, vi->Val.Ptr, PLINC_SIZE(*vi), &l, vo);
-    if (r == i) {
-        len = PLINC_SIZE(*vi);
-        vi->Val.Ptr = (char *)(vi->Val.Ptr) + l;
-        vi->Flags &= ~PLINC_SIZE_MASK;
-        vi->Flags |= (len - l);
-    }
-       
-    return r;
-}
-
-
 static void *
 StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
 {
@@ -360,6 +342,53 @@ StringToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
         return i;
     }
 }
+#else
+void *
+PlincToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
+{
+    PlincStrFile sf;
+    PlincFile *f;
+    PlincVal vs;
+    void *r;
+
+    vs.Flags = PLINC_TYPE_STRING | (len);
+    vs.Val.Ptr = buf;
+    
+    PlincInitStrFile(&sf, &vs);
+    f = (PlincFile *)(void *)&sf;
+
+    r = PlincGetToken(i, f, v);
+    if (r == i) {
+        return NULL;
+    } else if (r) {
+        return r;
+    } else {
+        *eaten = sf.Cur;
+    }
+    
+    return i;
+}
+#endif
+
+
+
+void *
+PlincTokenVal(PlincInterp *i, PlincVal *vi, PlincVal *vo)
+{
+    size_t l, len;
+    void *r;
+    
+    r = PlincToken(i, vi->Val.Ptr, PLINC_SIZE(*vi), &l, vo);
+    if (r == i) {
+        len = PLINC_SIZE(*vi);
+        vi->Val.Ptr = (char *)(vi->Val.Ptr) + l;
+        vi->Flags &= ~PLINC_SIZE_MASK;
+        vi->Flags |= (len - l);
+    }
+       
+    return r;
+}
+
 
 
 
@@ -417,6 +446,7 @@ PlincGetOther(PlincInterp *i, PlincFile *f, PlincVal *v, int c, int lit)
     
     if (!lit) {
         r = PlincParseNum(i, v, (nlen+1), l);
+
         if (!r || (r != i->syntaxerror)) {
             return r;
         }
@@ -522,6 +552,16 @@ PlincGetToken(PlincInterp *i, PlincFile *f, PlincVal *val)
         case ']':
             v.Flags = PLINC_TYPE_NAME;
             v.Val.Ptr = i->RightBracket;
+            goto value;
+         
+        case '{':
+            v.Flags = PLINC_TYPE_NAME | PLINC_ATTR_DOEXEC;
+            v.Val.Ptr = i->LeftBrace;
+            goto value;
+
+        case '}':
+            v.Flags = PLINC_TYPE_NAME | PLINC_ATTR_DOEXEC;
+            v.Val.Ptr = i->RightBrace;
             goto value;
          
         case '<':
