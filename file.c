@@ -202,7 +202,7 @@ op_readhexstring(PlincInterp *i)
             f = (PlincFile *)(v1->Val.Ptr);
             PlincInitHexDecode(&hf, f, 0);
             s = PLINC_SIZE(*v2);
-            r = PlincReadString((PlincFile *)&hf, v2->Val.Ptr, s);
+            r = PlincReadString((PlincFile *)(void *)(&hf), v2->Val.Ptr, s);
             if (r == PLINC_IOERR) {
                 return i->ioerror;
             } else {
