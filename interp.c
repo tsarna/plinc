@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.14 1999/01/20 20:30:12 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.15 1999/01/20 23:14:23 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -93,6 +93,7 @@ PlincInitErrorNames(PlincInterp *i)
 
     DEFERR(interrupt);
     DEFERR(invalidaccess);
+    DEFERR(invalidexit);
 
     DEFERR(limitcheck);
 

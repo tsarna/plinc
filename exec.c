@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.11 1999/01/20 20:30:12 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.12 1999/01/20 23:14:23 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -58,7 +58,8 @@ pres(i);
                     *v = nv;
 
                     /* force procs to be run rather than pushed */
-                    if ((PLINC_TYPE(*v) == PLINC_TYPE_ARRAY)
+                    if (((PLINC_TYPE(*v) == PLINC_TYPE_ARRAY)
+                    ||  (PLINC_TYPE(*v) == PLINC_TYPE_OP))
                     &&   PLINC_EXEC(*v)) {
                         v->Flags |= PLINC_ATTR_DOEXEC;
                     }
@@ -162,7 +163,7 @@ op_rbrace(PlincInterp *i)
 
     if (PLINC_OPSTACKROOM(i, 1)) {
         i->ScanLevel++;
-
+fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
         v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_MARK;
         PLINC_OPPUSH(i, v);
 
@@ -179,6 +180,7 @@ op_dot_decscan(PlincInterp *i)
 {
     if (i->ScanLevel) {
         i->ScanLevel--;
+fprintf(stderr, ">>> scanlevel %d\n", i->ScanLevel);
 
         return NULL;
     } else {

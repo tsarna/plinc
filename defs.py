@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.4 1999/01/20 20:16:56 tsarna Exp tsarna $
+# $Endicor: defs.py,v 1.5 1999/01/20 20:30:12 tsarna Exp $
 
 
 early = """
@@ -9,6 +9,8 @@ early = """
 % The odd style here is a result of the fact that it's early in
 % interpreter initialization, and we have only the C-implemented
 % operators available.  In fact, the point here is to define them. 
+
+
 
 % define the ']' operator.
 % the contained ops need to be .doexec so they're run when called from '}'
@@ -21,6 +23,8 @@ systemdict (]) [
     /pop load .doexec
 counttomark array astore cvx exch pop put
 
+
+
 % define the '}' operator
 
 systemdict (}) [
@@ -29,11 +33,25 @@ systemdict (}) [
     /cvx load .doexec
 ] .doexec put
 
+
+
 % define the 'def' operator
 
 systemdict /def {
     currentdict 3 1 roll put
 } put
+
+
+
+% define the '>>' operator
+
+(>>) {
+    counttomark 2 idiv dup dict exch 
+        { dup 4 2 roll put }
+    repeat 
+    exch pop
+} def
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
