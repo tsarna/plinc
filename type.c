@@ -196,24 +196,56 @@ op_readonly(PlincInterp *i)
 
 
 static void *
-op_xcheck(PlincInterp *i)
+check_not(PlincInterp *i, int flags)
 {
+    PlincUInt32 t;
+    
     PlincVal v;
     if (!PLINC_OPSTACKHAS(i, 1)) {
         return i->stackunderflow;
     } else {
-        v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
-        if (PLINC_EXEC(PLINC_OPTOPDOWN(i, 0))) {
-            v.Val.Int = 1;
-        } else {
-            v.Val.Int = 0;
-        }
+        t = PLINC_TYPE(PLINC_OPTOPDOWN(i, 0));
+        switch (t) {
+        case PLINC_TYPE_ARRAY:
+        case PLINC_TYPE_DICT:
+        case PLINC_TYPE_FILE:
+        case PLINC_TYPE_STRING:
+            v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_BOOL;
+            v.Val.Int = (PLINC_OPTOPDOWN(i, 0).Flags & flags) ? FALSE : TRUE;
         
-        PLINC_OPPOP(i);
-        PLINC_OPPUSH(i, v);
+            PLINC_OPPOP(i);
+            PLINC_OPPUSH(i, v);
 
-        return NULL;
+            return NULL;
+        
+        default:
+            return i->typecheck;
+        }
     }
+}
+
+
+
+static void *
+op_xcheck(PlincInterp *i)
+{
+    return check_not(i, PLINC_ATTR_LIT);
+}
+
+
+
+static void *
+op_rcheck(PlincInterp *i)
+{
+    return check_not(i, PLINC_ATTR_NOREAD);
+}
+
+
+
+static void *
+op_wcheck(PlincInterp *i)
+{
+    return check_not(i, PLINC_ATTR_NOWRITE);
 }
 
 
@@ -227,6 +259,8 @@ static const PlincOp ops[] = {
     {op_executeonly,    "executeonly"},
     {op_noaccess,       "noaccess"},
     {op_readonly,       "readonly"},
+    {op_rcheck,         "rcheck"},
+    {op_wcheck,         "wcheck"},
 
     {NULL,          NULL}
 };
