@@ -29,7 +29,7 @@ early = """
         dup dup 0 exch length 1 sub getinterval {==only ( ) print} forall
         dup dup length 1 sub get ==only
         xcheck {(})} {(])} ifelse print
-}bind def
+} bind def
 
 /==only {dup type /arraytype eq {==array} {==one} ifelse} bind def
 /== {==only (\n) print} bind def
