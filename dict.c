@@ -297,6 +297,30 @@ op_end(PlincInterp *i)
 
 
 static void *
+op_def(PlincInterp *i)
+{
+    PlincVal *k, *v;
+    void *r;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        k = &PLINC_OPTOPDOWN(i, 1);
+        v = &PLINC_OPTOPDOWN(i, 0);
+
+        r = PlincPutDict(i, PLINC_TOPDOWN(i->DictStack, 0).Val.Ptr, k, v);
+        if (!r) {
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+        }
+    }
+    
+    return r;
+}
+
+
+
+static void *
 op_load(PlincInterp *i)
 {
     PlincVal v;
@@ -420,6 +444,7 @@ static const PlincOp ops[] = {
     {op_maxlength,      "maxlength"},
     {op_begin,          "begin"},
     {op_end,            "end"},
+    {op_def,            "def"},
     {op_load,           "load"},
     {op_known,          "known"},
     {op_where,          "where"},
