@@ -462,14 +462,6 @@ closed_readorwritestring(PlincFile *f, char *buf, PlincInt l)
 
 
 
-PlincInt
-plinc_io_bytesavailable(PlincFile *f)
-{
-    return -1;
-}
-
-
-
 PlincFileOps plinc_closed_ops = {
     closed_file,                /* close */
     closed_file,                /* flush */
