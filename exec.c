@@ -210,13 +210,10 @@ op_exec(PlincInterp *i)
     } else {
         v = &PLINC_OPTOPDOWN(i, 0);
 
-        /* force proc to be executed */
-        v->Flags |= PLINC_ATTR_DOEXEC;
-
         PLINC_TOPDOWN(i->ExecStack, 0) = *v;
         PLINC_OPPOP(i);
 
-        /* tell main loop not to pop the opstack */
+        /* tell main loop not to pop the execstack */
         return i;
     }
 }
@@ -314,6 +311,7 @@ static void *
 op_if(PlincInterp *i)
 {
     PlincVal *v1, *v2;
+    void *r = NULL;
 
     if (!PLINC_OPSTACKHAS(i, 2)) {
         return i->stackunderflow;
@@ -327,18 +325,18 @@ op_if(PlincInterp *i)
         } else if (!PLINC_CAN_EXEC(*v2)) {
             return i->invalidaccess;
         } else {
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
-
             if (v1->Val.Int) {
                 PLINC_TOPDOWN(i->ExecStack, 0) = *v2;
 
-                return i;
+                r = i;
             }
+
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
         }
     }
 
-    return NULL;
+    return r;
 }
 
 
@@ -362,15 +360,15 @@ op_ifelse(PlincInterp *i)
         } else if (!PLINC_CAN_EXEC(*v2) || !PLINC_CAN_EXEC(*v3)) {
             return i->invalidaccess;
         } else {
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
-            PLINC_OPPOP(i);
-
             if (v1->Val.Int) {
                 PLINC_TOPDOWN(i->ExecStack, 0) = *v2;
             } else {
                 PLINC_TOPDOWN(i->ExecStack, 0) = *v3;
             }
+
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
 
             return i;
         }
