@@ -1,4 +1,4 @@
-#include <plinc/types.h>
+#include <plinc/interp.h>
 #include <plinc/file.h>
 #include <stdio.h>
 
