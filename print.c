@@ -6,7 +6,7 @@
 
 
 
-static char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
 

@@ -125,7 +125,7 @@ stdio_writestring(PlincFile *f, char *buf, PlincInt l)
 
 
 
-PlincFileOps stdio_ops = {
+const PlincFileOps stdio_ops = {
     stdio_close,
     stdio_flush,
     stdio_reset,

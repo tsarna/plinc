@@ -10,7 +10,7 @@
 #endif
 #define HEXCHUNK ((PLINC_HEX_BUFSIZE)/2)
 
-static char hexdigits[] = "0123456789abcdef";
+static const char hexdigits[] = "0123456789abcdef";
 
 
 
@@ -589,7 +589,7 @@ closed_readline(PlincFile *f, char *buf, PlincInt *l)
 
 
 
-PlincFileOps plinc_closed_ops = {
+const PlincFileOps plinc_closed_ops = {
     closed_file,                /* close */
     closed_file,                /* flush */
     closed_file,                /* reset */

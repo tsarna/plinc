@@ -4,7 +4,7 @@
 
 #define HEAPSIZE 65536
 
-PlincFileOps stdio_ops;
+extern const PlincFileOps stdio_ops;
 
 int
 main(int argc, char *argv[])
