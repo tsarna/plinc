@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.7 1999/01/17 22:31:04 tsarna Exp tsarna $ */
+/* $Endicor: types.h,v 1.8 1999/01/18 00:54:54 tsarna Exp $ */
 
 #include <sys/types.h>
 
@@ -35,7 +35,7 @@ typedef u_int32_t   PlincUInt;
 
 #define PLINC_LIT(x)        ((x).Flags & PLINC_ATTR_LIT)
 #define PLINC_EXEC(x)       (!((x).Flags & PLINC_ATTR_LIT))
-#define PLINC_DOEXEC(x)     (!((x).Flags & PLINC_ATTR_DOEXEC))
+#define PLINC_DOEXEC(x)     ((x).Flags & PLINC_ATTR_DOEXEC)
 #define PLINC_CAN_READ(x)   (!((x).Flags & PLINC_ATTR_NOREAD))
 #define PLINC_CAN_WRITE(x)  (!((x).Flags & PLINC_ATTR_NOWRITE))
 #define PLINC_CAN_EXEC(x)   (!((x).Flags & PLINC_ATTR_NOEXEC))

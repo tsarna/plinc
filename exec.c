@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.5 1999/01/18 00:54:54 tsarna Exp tsarna $ */
+/* $Endicor: exec.c,v 1.6 1999/01/18 05:13:40 tsarna Exp tsarna $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -151,11 +151,11 @@ op_exec(PlincInterp *i)
         return i->stackunderflow;
     } else {
         v = &PLINC_OPTOPDOWN(i, 0);
-        PLINC_INCREF_VAL(*v);
 
         /* force proc to be executed */
         v->Flags |= PLINC_ATTR_DOEXEC;
 
+        PLINC_INCREF_VAL(*v);
         PLINC_TOPDOWN(i->ExecStack, 0) = *v;
         PLINC_OPPOP(i);
 
@@ -166,8 +166,42 @@ op_exec(PlincInterp *i)
 
 
 
+static void *
+op_if(PlincInterp *i)
+{
+    PlincVal *v1, *v2;
+    
+    if (!PLINC_OPSTACKHAS(i, 2)) {
+        return i->stackunderflow;
+    } else {
+        v1 = &PLINC_OPTOPDOWN(i, 0);
+        v2 = &PLINC_OPTOPDOWN(i, 1);
+
+        if ((PLINC_TYPE(*v2) != PLINC_TYPE_BOOL)
+        ||  (PLINC_TYPE(*v1) != PLINC_TYPE_ARRAY)) {
+            return i->typecheck;
+        } else if (!PLINC_CAN_EXEC(*v1)) {
+            return i->invalidaccess;
+        } else {
+            PLINC_OPPOP(i);
+            PLINC_OPPOP(i);
+
+            if (v2->Val.Int) {
+                PLINC_INCREF_VAL(*v2);
+                PLINC_TOPDOWN(i->ExecStack, 0) = *v2;
+                
+                return i;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+
 static PlincOp ops[] = {
     {"exec",        op_exec},
+    {"if",          op_if},
 
     {NULL,          NULL}
 };

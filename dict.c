@@ -1,9 +1,10 @@
-/* $Endicor: dict.c,v 1.6 1999/01/18 00:54:54 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.7 1999/01/18 05:13:40 tsarna Exp tsarna $ */
 
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+#include <stdio.h> /*XXX*/
 
 
 void *
@@ -35,12 +36,8 @@ PlincNewDict(PlincHeap *h, PlincUInt size)
 
 
 PlincUInt
-PlincHashPtr(void *p)
+PlincHash(PlincUInt r)
 {
-    PlincUInt r;
-
-    r = (PlincUInt)p;
-
     r = r ^ 0x876AE319;
     r = (r >> 16) ^ (r & 0xFFFF);
     r = r ^ (r * 251);
@@ -51,6 +48,13 @@ PlincHashPtr(void *p)
     r = (r >> 16) ^ (r & 0xFFFF);
 
     return r;
+}
+
+
+PlincUInt
+PlincHashVal(PlincVal *v)
+{
+    return PlincHash((PlincUInt)(v->Val.Ptr));
 }
 
 
@@ -65,7 +69,7 @@ PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
     } else if (d->Len < d->MaxLen) {
         d->Len++;
 
-        j = PlincHashPtr(key) % (d->MaxLen);
+        j = PlincHash((PlincUInt)key) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key)) {
             j++;
@@ -96,7 +100,7 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
     if (!PLINC_CAN_READ(*d)) {
         r = i->invalidaccess;
     } else {
-        oj = j = PlincHashPtr(key->Val.Ptr) % (d->MaxLen);
+        oj = j = PlincHashVal(key) % (d->MaxLen);
 
         while (!PLINC_IS_NULL(d->Vals[j].Key)) {
             if (PlincEqual(&(d->Vals[j].Key), key)) {
@@ -227,8 +231,57 @@ op_load(PlincInterp *i)
 }
 
 
+
+static void *
+op_begin(PlincInterp *i)
+{
+    PlincDict *d;
+    PlincVal *v;
+
+    if (!PLINC_OPSTACKHAS(i, 1)) {
+        return i->stackunderflow;
+    } else {
+        v = &PLINC_OPTOPDOWN(i, 0);
+        if (PLINC_TYPE(*v) != PLINC_TYPE_DICT) {
+            return i->typecheck;
+        } else if (!PLINC_STACKROOM(i->DictStack, 1)) {
+            return i->dictstackoverflow;
+        } else { 
+            PLINC_PUSH(i->DictStack, *v);
+            PLINC_OPPOP(i);
+
+            d = v->Val.Ptr;
+
+            if (PLINC_DOEXEC(*d)) {
+fprintf(stderr, "YO!");
+                i->DictStack.MinLen = i->DictStack.Len;
+            }
+        
+            return NULL;
+        }
+    }
+}
+
+
+
+static void *
+op_end(PlincInterp *i)
+{
+    if (!PLINC_STACKHAS(i->DictStack, i->DictStack.MinLen + 1)) {
+        return i->dictstackunderflow;
+    } else {
+        PLINC_POP(i->DictStack);
+        
+        return NULL;
+    }
+}
+
+
+
 static PlincOp ops[] = {
     {"maxlength",       op_maxlength},
+    {"begin",           op_begin},
+    {"end",             op_end},
 
     {"load",            op_load},
 

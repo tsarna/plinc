@@ -1,4 +1,4 @@
-/* $Endicor: interp.c,v 1.8 1999/01/18 00:54:54 tsarna Exp tsarna $ */
+/* $Endicor: interp.c,v 1.9 1999/01/18 05:13:40 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -17,6 +17,7 @@ PlincNewInterp(size_t heapsize)
         ok = PlincNewStack(&(i->OpStack), 500);
         if (ok) {
             ok = PlincNewStack(&(i->DictStack), 20);
+            i->DictStack.MinLen = 1;
         }
         if (ok) {
             ok = PlincNewStack(&(i->ExecStack), 250);
@@ -40,6 +41,7 @@ PlincNewInterp(size_t heapsize)
             PlincInitDictOps(i);
             PlincInitRelationalOps(i);
             PlincInitControlOps(i);
+            PlincInitPolymorphOps(i);
             PlincInitVMOps(i);
         }
                     
@@ -75,8 +77,7 @@ PlincInitErrorNames(PlincInterp *i)
     PlincHeap *h = i->Heap;
     
 #define DEFNAME(x) PlincName(h, x, strlen(x))
-#define DEFERR(x) i->x = DEFNAME(#x); \
-  fprintf(stderr, "ERR %s @ %p\n", #x, i->x);
+#define DEFERR(x) i->x = DEFNAME(#x);
 
     DEFERR(dictfull);
     DEFERR(dictstackoverflow);
@@ -112,8 +113,7 @@ PlincInitVals(PlincInterp *i)
     
 #define DEFDICT(x, s) name = DEFNAME(#x); d = PlincNewDict(h, s); \
     i->x = d; v.Flags = d->Flags; v.Val.Ptr = d; \
-    PlincPutDictName(i, i->systemdict, name, &v); \
-    fprintf(stderr, "DICT %s @ %p\n", #x, d);
+    PlincPutDictName(i, i->systemdict, name, &v);
 
     DEFDICT(systemdict, 50);
     PLINC_PUSH(i->DictStack, v);
