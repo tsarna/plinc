@@ -2,69 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <ctype.h>
-#include <stdio.h> /* XXX */
-
-static char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-#define BUFLEN      (sizeof(PlincInt) * CHAR_BIT + 2)
-
-
-char *
-PlincFmtRadix(PlincUInt i, PlincInt base, char *buf, int len)
-{
-    char *p;
-
-    p = buf + len;
-    *--p = '\0';
-
-    if (i) {
-        while (i) {
-            *--p = digits[i % base];
-            i /= base;
-        }
-    } else {
-        *--p = '0';
-    }
-    
-    return p;
-}
-
-
-
-char *
-PlincFmtInt(PlincInt i, char *buf, int len)
-{
-    int neg = FALSE;
-    PlincUInt v = i;
-    char *p;
-
-    if (i < 0) {
-        neg = TRUE;
-        i++; v = -i; v++;
-    }
-    
-    p = buf + len;
-    *--p = '\0';
-    p[-1] = '0';
-    
-    if (v) {
-        while (v) {
-            *--p = digits[v % 10];
-            v /= 10;
-        }
-    } else {
-        *--p = '0';
-    }
-
-    if (neg) {
-        *--p = '-';
-    }
-    
-    return p;
-}
-
 
 
 static int
@@ -191,7 +129,7 @@ PlincParseNum(PlincInterp *i, PlincVal *v, char *p, int len)
     PlincInt t;
     void *r;
 #ifdef WITH_REAL
-    char buf[BUFLEN], *pe = NULL;
+    char buf[PLINC_FMT_BUFLEN], *pe = NULL;
     double d;
 #endif    
 
@@ -207,7 +145,7 @@ PlincParseNum(PlincInterp *i, PlincVal *v, char *p, int len)
         return NULL;
 #ifdef WITH_REAL
     } else if (r == i->syntaxerror) {
-        len = min(len, BUFLEN-1);
+        len = min(len, PLINC_FMT_BUFLEN-1);
         strncpy(buf, p, len);
         buf[len] = '\0';
         d = strtod(buf, &pe);
@@ -313,7 +251,7 @@ static void *
 op_cvrs(PlincInterp *i)
 {
     PlincVal *n, *rx, *s, nv;
-    char buf[BUFLEN], *p;
+    char buf[PLINC_FMT_BUFLEN], *p;
     int base, len;
     PlincUInt u;
     
@@ -338,11 +276,11 @@ op_cvrs(PlincInterp *i)
             
             if (base == 10) {
                 if (PLINC_TYPE(*n) == PLINC_TYPE_INT) {
-                    p = PlincFmtInt(n->Val.Int, buf, BUFLEN);
-                    len = (BUFLEN - (p - buf));
+                    p = PlincFmtInt(n->Val.Int, buf, PLINC_FMT_BUFLEN);
+                    len = (PLINC_FMT_BUFLEN - (p - buf));
 #ifdef WITH_REAL
                 } else if (PLINC_TYPE(*n) == PLINC_TYPE_REAL) {
-                    len = PlincFmtReal(n->Val.Real, buf, BUFLEN);
+                    len = PlincFmtReal(n->Val.Real, buf, PLINC_FMT_BUFLEN);
                     p = buf;
 #endif
                 } else {
@@ -359,8 +297,8 @@ op_cvrs(PlincInterp *i)
                     return i->typecheck;
                 }
                  
-                p = PlincFmtRadix(u, base, buf, BUFLEN);
-                len = (BUFLEN - (p - buf));
+                p = PlincFmtRadix(u, base, buf, PLINC_FMT_BUFLEN);
+                len = (PLINC_FMT_BUFLEN - (p - buf));
             }
 
             if (len > PLINC_SIZE(*s)) {
@@ -387,7 +325,7 @@ static void *
 op_cvs(PlincInterp *i)
 {
     PlincVal *v, *s, nv;
-    char buf[BUFLEN], *p, *d;
+    char buf[PLINC_FMT_BUFLEN], *p, *r;
     int len;
 
     if (!PLINC_OPSTACKHAS(i, 2)) {
@@ -400,45 +338,14 @@ op_cvs(PlincInterp *i)
             return i->typecheck;
         } else if (!PLINC_CAN_WRITE(*s)) {
             return i->invalidaccess;
-        } else if (PLINC_TYPE(*v) == PLINC_TYPE_OP) {
-            p = v->Val.Op->Name;
-            len = strlen(p);
-            d = s->Val.Ptr;
-            
-            if ((len + 4) > PLINC_SIZE(*s)) {
-                return i->rangecheck;
-            } else {
-                memcpy(d, "--", 2);
-                memcpy(d+2, p, len);
-                memcpy(d+2+len, "--", 2);
-
-                nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | (len + 4);
-                nv.Val.Ptr = d;
-            }
         } else {
-            if (PLINC_TYPE(*v) == PLINC_TYPE_BOOL) {
-                p = (v->Val.Int) ? "true" : "false";
-                len = (v->Val.Int) ? 4 : 5;
-            } else if (PLINC_TYPE(*v) == PLINC_TYPE_STRING) {
-                p = (v->Val.Ptr);
-                len = PLINC_SIZE(*v);
-            } else if (PLINC_TYPE(*v) == PLINC_TYPE_NAME) {
-                p = (char *)(v->Val.Ptr) + 1;
-                len = *((unsigned char *)(v->Val.Ptr));
-            } else if (PLINC_TYPE(*v) == PLINC_TYPE_INT) {
-                p = PlincFmtInt(v->Val.Int, buf, BUFLEN);
-                len = (BUFLEN - (p - buf));
-#ifdef WITH_REAL
-            } else if (PLINC_TYPE(*v) == PLINC_TYPE_REAL) {
-                len = PlincFmtReal(v->Val.Real, buf, BUFLEN);
-                p = buf;
-#endif
-            } else {
-                p = "--nostringval--";
-                len = 15; /* strlen("--nostringval--") */
-            }
+            p = buf;
+            len = PLINC_FMT_BUFLEN;
+            r = PlincFmtCVS(i, v, &p, &len);
 
-            if (len > PLINC_SIZE(*s)) {
+            if (r) {
+                return r;
+            } else if (len > PLINC_SIZE(*s)) {
                 return i->rangecheck;
             } else {
                 memcpy(s->Val.Ptr, p, len);
