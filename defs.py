@@ -1,6 +1,6 @@
 #!/usr/pkg/bin/python
 #
-# $Endicor: defs.py,v 1.2 1999/01/20 05:31:25 tsarna Exp tsarna $
+# $Endicor: defs.py,v 1.3 1999/01/20 05:44:31 tsarna Exp tsarna $
 
 
 early = """
@@ -29,8 +29,11 @@ systemdict (}) [
     /cvx load .doexec
 ] .doexec put
 
-%systemdict/def{currentdict 3 1 roll put}put
-%/store{exch dup where {3 1 roll exch put} {exch undefined} ifelse}bind def
+% define the 'def' operator
+
+systemdict /def {
+    currentdict 3 1 roll put
+} put
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """

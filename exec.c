@@ -1,4 +1,4 @@
-/* $Endicor: exec.c,v 1.8 1999/01/18 22:05:42 tsarna Exp $ */
+/* $Endicor: exec.c,v 1.9 1999/01/20 05:31:25 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
@@ -36,7 +36,6 @@ PlincGo(PlincInterp *i)
         v = &PLINC_TOPDOWN(i->ExecStack, 0);
 
 pres(i);
-if (PLINC_DOEXEC(*v)){fprintf(stderr, ">>>DOEXEC IN LOOP, ");PlincReprVal(i, v);fputs("\n", stderr);}
         if ((PLINC_EXEC(*v) && !(i->ScanLevel)) || PLINC_DOEXEC(*v)) {
             if (!PLINC_CAN_EXEC(*v)) {
                 return i->invalidaccess;
@@ -59,7 +58,10 @@ if (PLINC_DOEXEC(*v)){fprintf(stderr, ">>>DOEXEC IN LOOP, ");PlincReprVal(i, v);
                     *v = nv;
                     
                     /* force procs to be run rather than pushed */
-                    v->Flags |= PLINC_ATTR_DOEXEC;
+                    if ((PLINC_TYPE(*v) == PLINC_TYPE_ARRAY)
+                    &&   PLINC_EXEC(*v)) {
+                        v->Flags |= PLINC_ATTR_DOEXEC;
+                    }
                     
                     continue;
                 }
@@ -78,6 +80,10 @@ if (PLINC_DOEXEC(*v)){fprintf(stderr, ">>>DOEXEC IN LOOP, ");PlincReprVal(i, v);
                 }
                 continue;
             } else if (PLINC_TYPE(*v) == PLINC_TYPE_FILE) {
+                continue;
+            } else if (PLINC_TYPE(*v) == PLINC_TYPE_NULL) {
+                PLINC_POP(i->ExecStack);
+                
                 continue;
             }
         }
@@ -103,8 +109,6 @@ ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv)
             /* if we exhausted the string/array, pop it off */ 
             PLINC_POP(i->ExecStack);
         }
-
-if (PLINC_DOEXEC(*nv)){fprintf(stderr, ">>>DOEXEC LOPPED OBJECT\n");PlincReprVal(i, v);fputs("\n", stderr);}
 
         if ((PLINC_EXEC(*nv) && (i->ScanLevel == 0) 
         && (PLINC_TYPE(*nv) != PLINC_TYPE_ARRAY))

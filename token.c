@@ -1,4 +1,4 @@
-/* $Endicor: token.c,v 1.5 1999/01/19 23:10:35 tsarna Exp $ */
+/* $Endicor: token.c,v 1.6 1999/01/20 05:31:25 tsarna Exp $ */
 
 #include <plinc/token.h>
 
@@ -125,7 +125,7 @@ NumToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
     int base, neg = FALSE;
     char *p = buf;
     size_t l = len;
-    PlincInt n;
+    PlincUInt n;
     
     if (*p == '+') {
         p++; l--;
@@ -156,7 +156,12 @@ NumToken(PlincInterp *i, char *buf, size_t len, size_t *eaten, PlincVal *v)
     
 gotint:
     v->Flags = PLINC_ATTR_LIT | PLINC_TYPE_INT;
-    v->Val.Int = n;
+    
+    if (neg) {
+        v->Val.Int = -n;
+    } else {
+        v->Val.Int = n;
+    }
 
     *eaten += (len - l);
             
