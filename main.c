@@ -24,10 +24,12 @@ main(int argc, char *argv[])
     if (i) {
 /*        fwrite(i->Heap->HeapHeader, HEAPSIZE, 1, stdout);*/
 
-        i->StdIn.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOWRITE;
+        i->StdIn.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOWRITE
+            | PLINC_ATTR_LIT;
         i->StdIn.Val.Ptr = &si;
         
-        i->StdOut.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOREAD | PLINC_ATTR_NOEXEC;
+        i->StdOut.Flags = PLINC_TYPE_FILE | PLINC_ATTR_NOREAD
+            | PLINC_ATTR_NOEXEC | PLINC_ATTR_LIT;
         i->StdOut.Val.Ptr = &so;
         
         fprintf(stderr, "> ");
