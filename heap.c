@@ -1,10 +1,7 @@
-/* $Endicor: heap.c,v 1.2 1999/01/12 23:13:28 tsarna Exp $ */
-
-
 #include <stdlib.h>
 #include <string.h>
 
-#include <plinc/heap.h>
+#include <plinc/interp.h>
 
 
 void
@@ -92,38 +89,49 @@ PlincFreeHeap(PlincHeap *h)
 }
 
 
+
+void *
+PlincFindName(PlincHeapHeader *hh, char *name, size_t len)
+{
+    unsigned char *n;
+    size_t nlen;
+
+    n = hh->Names;
+    while (n) {
+        nlen = *n;
+        if (nlen == len) {
+            if (!memcmp(n+1, name, len)) {
+                return n;
+            }
+        }
+   
+        n = PLINC_LINK(n);
+    }
+
+    return NULL;
+}
+
+
+
 void *
 PlincName(PlincHeap *h, char *name, size_t len)
 {
     PlincHeapHeader *hh = h->HeapHeader;
-    unsigned char *n, *r = NULL;
-    size_t nlen;
-    
-    if (len <= PLINC_MAXNAMELEN) {
-        n = hh->Names;
-        while (n) {
-            nlen = *n;
-            if (nlen == len) {
-                if (!memcmp(n+1, name, len)) {
-                    r = n;
-                    break;
-                }
-            }
-       
-            n = PLINC_LINK(n);
-        }
-    
-        if (!r) {
-            r = PlincAllocHeapLinked(h, len + 1);
-            if (r) {
-                unsigned char *cp;
+    unsigned char *r = NULL;
+
+    len = min(len, PLINC_MAXNAMELEN);
+
+    r = PlincFindName(hh, name, len);
+    if (!r) {
+        r = PlincAllocHeapLinked(h, len + 1);
+        if (r) {
+            unsigned char *cp;
                
-                PLINC_LINK(r) = hh->Names;
-                hh->Names = r;
-                cp = r;
-                *cp++ = len;
-                memcpy(cp, name, len);
-            }
+            PLINC_LINK(r) = hh->Names;
+            hh->Names = r;
+            cp = r;
+            *cp++ = len;
+            memcpy(cp, name, len);
         }
     }
 
