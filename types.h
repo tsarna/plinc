@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.5 1999/01/17 02:11:46 tsarna Exp tsarna $ */
+/* $Endicor: types.h,v 1.6 1999/01/17 04:58:16 tsarna Exp $ */
 
 #include <sys/types.h>
 
@@ -57,6 +57,7 @@ typedef u_int32_t   PlincUInt;
 #define PLINC_TYPE_FONTID   0x00C00000
 
 #define PLINC_IS_NULL(x)    (PLINC_TYPE(x) == PLINC_TYPE_NULL)
+#define PLINC_IS_MARK(x)    (PLINC_TYPE(x) == PLINC_TYPE_MARK)
 
 /* forward */
 struct _PlincInterp;
