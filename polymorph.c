@@ -1,4 +1,4 @@
-/* $Endicor: polymorph.c,v 1.10 1999/01/27 23:17:19 tsarna Exp $ */
+/* $Endicor: polymorph.c,v 1.11 1999/01/28 17:39:22 tsarna Exp tsarna $ */
 
 #include <plinc/interp.h>
 
@@ -234,11 +234,58 @@ op_length(PlincInterp *i)
 
 
 
+static void *
+op_getinterval(PlincInterp *i)
+{
+    PlincVal *v0, *v1, *v2;
+    PlincInt j, l;
+    
+    if (!PLINC_OPSTACKHAS(i, 3)) {
+        return i->stackunderflow;
+    } else {
+        v0 = &PLINC_OPTOPDOWN(i, 2);
+        v1 = &PLINC_OPTOPDOWN(i, 1);
+        v2 = &PLINC_OPTOPDOWN(i, 0);
+        
+        if ((PLINC_TYPE(*v1) != PLINC_TYPE_INT)
+        ||  (PLINC_TYPE(*v2) != PLINC_TYPE_INT)
+        ||  ((PLINC_TYPE(*v0) != PLINC_TYPE_ARRAY)
+          && (PLINC_TYPE(*v0) != PLINC_TYPE_STRING))
+        ) {
+            return i->typecheck;
+        } else {
+            j = v1->Val.Int;
+            l = v2->Val.Int;
+            
+            if ((j < 0) || (l < 0) || ((j + l) > PLINC_SIZE(*v0))) {
+                return i->rangecheck;
+            } else {
+                PLINC_OPPOP(i);
+                PLINC_OPPOP(i);
+                
+                v0->Flags &= ~PLINC_SIZE_MASK;
+                v0->Flags |= l;
+                
+                if (PLINC_TYPE(*v0) == PLINC_TYPE_STRING) {
+                    v0->Val.Ptr = ((char *)(v0->Val.Ptr)) + j;
+                } else {
+                    v0->Val.Ptr = ((PlincVal *)(v0->Val.Ptr)) + j;
+                }
+              
+                return NULL;
+            }
+        }
+    }
+}
+
+
+
 static const PlincOp ops[] = {
-    {op_copy,       "copy"},
-    {op_get,        "get"},
-    {op_put,        "put"},
-    {op_length,     "length"},
+    {op_copy,           "copy"},
+    {op_get,            "get"},
+    {op_put,            "put"},
+    {op_length,         "length"},
+    {op_getinterval,    "getinterval"},
 
     {NULL,          NULL}
 };
