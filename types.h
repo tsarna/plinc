@@ -2,6 +2,7 @@
 #define PLINC_TYPES_H
 
 #include <sys/types.h>
+#include <limits.h>
 
 
 #ifndef TRUE
@@ -74,6 +75,10 @@ struct _PlincVal {
         struct _PlincOp    *Op;
     } Val;
 };
+
+
+/* buffer size needed for formatting a plinc number */
+#define PLINC_FMT_BUFLEN      (sizeof(PlincInt) * CHAR_BIT + 2)
 
 
 #endif /* PLINC_TYPES_H */
