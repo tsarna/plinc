@@ -1,7 +1,8 @@
-/* $Endicor: exec.c,v 1.15 1999/01/24 03:47:42 tsarna Exp $ */
+/* $Endicor: exec.c,v 1.16 1999/01/27 01:46:41 tsarna Exp $ */
 
 #include <plinc/token.h>
 #include <stdio.h> /*XXX*/
+#include <string.h>
 
 
 static void *ValFromComp(PlincInterp *i, void *r, PlincVal *v, PlincVal *nv);
@@ -14,11 +15,15 @@ pres(PlincInterp *i)
 {
     int j;
 
+#if 0
     fprintf(stderr, "XXX: Exec Stack len %d\n", i->ExecStack.Len);
+#endif
     for (j = 0; j < i->ExecStack.Len; j++) {
+#if 0
         fprintf(stderr, "XXX: ");
         PlincReprVal(i, &PLINC_TOPDOWN(i->ExecStack, j));
         fprintf(stderr, "\n");
+#endif
     }
 }
 
