@@ -72,7 +72,6 @@ struct _PlincVal {
         PlincInt            Int;
         float               Real;
         struct _PlincOp    *Op;
-        void               *(*Func)(struct _PlincInterp *);
     } Val;
 };
 
