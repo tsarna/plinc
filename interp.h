@@ -125,6 +125,7 @@ void            PlincInitVals(PlincInterp *i);
 
 void           *PlincNewArray(PlincHeap *h, PlincUInt size);
 void           *PlincArrayVal(PlincInterp *i, PlincVal *a, PlincVal *ret);
+void           *PlincPutArray(PlincInterp *i, PlincVal *a, PlincUInt ix, PlincVal *v);
 
 void           *PlincNewString(PlincHeap *h, PlincUInt size);
 
