@@ -275,14 +275,6 @@ op_begin(PlincInterp *i)
 
             d = v->Val.Ptr;
 
-            if (PLINC_DOEXEC(*d)) { /* XXX */
-                /* fix flags and lock dictstack */
-                d->Flags &= ~PLINC_ATTR_DOEXEC;
-                d->Flags |= PLINC_ATTR_LIT;
-                
-                i->DictStack.MinLen = i->DictStack.Len;
-            }
-        
             return NULL;
         }
     }
