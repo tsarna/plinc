@@ -49,6 +49,7 @@ pres(i);
                 if (r == i) {
                     continue;
                 } else if (r) {
+                    fprintf(stderr, "ERR %s\n", (char *)r);
                     return r;
                 } else {
                     PLINC_POP(i->ExecStack);
@@ -395,3 +396,4 @@ PlincInitControlOps(PlincInterp *i)
 {
     PlincInitOps(i, ops);
 }
+
