@@ -26,6 +26,8 @@ PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
         i->RandState = 1;
         i->GotInterrupt = FALSE;
         
+        i->Flags = PLINC_FLAG_ECHO;
+        
 #ifdef WITH_SIMPLE_CTM
         i->DefaultMatrix = PlincDefaultMatrix;
         i->CTM = i->DefaultMatrix;
