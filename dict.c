@@ -1,9 +1,13 @@
-/* $Endicor: array.c,v 1.1 1999/01/12 22:27:34 tsarna Exp tsarna $ */
+/* $Endicor: dict.c,v 1.1 1999/01/14 01:26:00 tsarna Exp $ */
 
 
 #include <plinc/interp.h>
 
 #include <stdlib.h>
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 
 void *
@@ -25,7 +29,7 @@ PlincNewDict(PlincHeap *h, PlincUInt size)
         r->MaxLen = size;
 
         for (i = 0; i < size; i++) {
-            r->Vals[i].Key = NULL;
+            r->Vals[i].Key.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
         }
     }
 
@@ -55,29 +59,64 @@ PlincHashPtr(void *p)
 
 
 void *
-PlincPutDict(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
+PlincPutDictName(PlincInterp *i, PlincDict *d, void *key, PlincVal *val)
 {
-    void *r = i->dictfull;
+    void *r = NULL;
     PlincUInt j;
 
     if (!PLINC_CAN_WRITE(d)) {
-        return i->invalidaccess;
+        r = i->invalidaccess;
     } else if (d->Len < d->MaxLen) {
         d->Len++;
 
         j = PlincHashPtr(key) % (d->MaxLen);
 
-        while (d->Vals[j].Key) {
-            if (++j >= d->MaxLen) {
+        while (!PLINC_IS_NULL(&(d->Vals[j].Key))) {
+            j++;
+            
+            if (j >= d->MaxLen) {
                 j = 0;
             }
         }
 
-        d->Vals[j].Key = key;
+        d->Vals[j].Key.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
+        d->Vals[j].Key.Val.Ptr = key;
         d->Vals[j].Val = *val;
     } else {
         r = i->dictfull;
     }
-
+    
     return r;
 }
+
+
+#ifdef DEBUG
+
+void
+PlincPrintName(PlincInterp *i, void *name)
+{
+    unsigned char *n = name;
+    size_t s;
+
+    s = *n++;
+
+    fprintf(stderr, "%d %*s", s, s, n);
+}
+
+
+
+void
+PlincPrintDict(PlincInterp *i, PlincDict *d)
+{
+    int j;
+    
+    for (j = 0; j < d->MaxLen; j++) {
+        if (!PLINC_IS_NULL(&(d->Vals[j].Key))) {
+            PlincPrintName(i, d->Vals[j].Key.Val.Ptr);
+            fprintf(stderr, "\n");
+        }
+    }
+}
+
+
+#endif

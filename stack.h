@@ -1,4 +1,4 @@
-/* $Endicor: stack.h,v 1.1 1999/01/14 01:26:00 tsarna Exp tsarna $ */
+/* $Endicor: stack.h,v 1.2 1999/01/14 02:55:42 tsarna Exp tsarna $ */
 
 #include <plinc/types.h>
 
@@ -12,8 +12,13 @@ struct _PlincStack {
 };
 
 
-#define PLINC_PUSH(s, v)  do {(s).Stack[++((s).Len)] = v;} while (0)
+#define PLINC_INCREF_VAL(v) v
+#define PLINC_DECREF_VAL(v) v
 
+#define PLINC_PUSH(s, v)  do { (s).Stack[((s).Len)++] = v; } while (0)
+#define PLINC_POP(s)      do { PLINC_DECREF_VAL((s).Stack[--((s).Len)]); } while (0)
+
+#define PLINC_TOPDOWN(s, i)     ((s).Stack[(s).Len - 1 - (i)])
 
 /****************************************/
 

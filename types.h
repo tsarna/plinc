@@ -1,7 +1,7 @@
 #ifndef PLINC_TYPES_H
 #define PLINC_TYPES_H
 
-/* $Endicor: types.h,v 1.2 1999/01/12 23:13:28 tsarna Exp tsarna $ */
+/* $Endicor: types.h,v 1.3 1999/01/14 01:26:00 tsarna Exp $ */
 
 #include <sys/types.h>
 
@@ -53,6 +53,11 @@ typedef u_int32_t   PlincUInt;
 #define PLINC_TYPE_SAVE     0x00B00000
 #define PLINC_TYPE_FONTID   0x00C00000
 
+#define PLINC_IS_NULL(x)    (PLINC_TYPE(x) == PLINC_TYPE_NULL)
+
+/* forward */
+struct _PlincInterp;
+ 
 typedef struct _PlincVal PlincVal;
 struct _PlincVal {
     PlincUInt       Flags;
@@ -60,6 +65,7 @@ struct _PlincVal {
         void       *Ptr;
         PlincInt    Int;
         float       Real;
+        void     *(*Func)(struct _PlincInterp *);
     } Val;
 };
 

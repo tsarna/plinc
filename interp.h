@@ -1,4 +1,4 @@
-/* $Endicor$ */
+/* $Endicor: interp.h,v 1.1 1999/01/14 01:26:00 tsarna Exp $ */
 
 #ifndef PLINC_INTERP_H
 #define PLINC_INTERP_H
@@ -10,7 +10,7 @@
 
 typedef struct _PlincDictEnt PlincDictEnt;
 struct _PlincDictEnt {
-    void       *Key;
+    PlincVal    Key;
     PlincVal    Val;
 };
 
@@ -47,6 +47,14 @@ struct _PlincInterp {
     void           *stackoverflow;
 };
 
+
+typedef struct _PlincOps PlincOps;
+struct _PlincOps {
+    char    *Name;
+    void  *(*Func)(PlincInterp *);
+};
+
+
 /****************************************/
 
 PlincInterp    *PlincNewInterp(size_t heap);
@@ -56,7 +64,12 @@ void            PlincInitVals(PlincInterp *i);
 
 void           *PlincNewDict(PlincHeap *h, PlincUInt size);
 PlincUInt       PlincHashPtr(void *p);
-void           *PlincPutDict(PlincInterp *i, PlincDict *d,
+void           *PlincPutDictName(PlincInterp *i, PlincDict *d,
                     void *key, PlincVal *val);
+void            PlincPrintName(PlincInterp *i, void *name);
+void            PlincPrintDict(PlincInterp *i, PlincDict *d);
+
+void            PlincInitOps(PlincInterp *i, PlincOps *o);
+void            PlincInitStackOps(PlincInterp *i);
 
 #endif /* PLINC_INTERP_H */
