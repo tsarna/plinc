@@ -1,5 +1,4 @@
 #include <plinc/interp.h>
-#include <plinc/version.h>
 
 #include <string.h>
 
@@ -215,32 +214,11 @@ op_cvn(PlincInterp *i)
 
 
 
-static void *
-op_version(PlincInterp *i)
-{
-    PlincVal nv;
-    
-    if (!PLINC_OPSTACKROOM(i, 1)) {
-        return i->stackoverflow;
-    } else {
-        nv.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | PLINC_ATTR_NOWRITE \
-            | strlen(PLINC_VERSION);
-        nv.Val.Ptr = PLINC_VERSION;
-
-        PLINC_OPPUSH(i, nv);
-    }
-
-    return NULL;
-}
-
-
-
 static const PlincOp ops[] = {
     {op_string,         "string"},
     {op_anchorsearch,   "anchorsearch"},
     {op_search,         "search"},
     {op_cvn,            "cvn"},
-    {op_version,        "version"},
 
     {NULL,              NULL}
 };

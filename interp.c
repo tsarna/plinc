@@ -1,4 +1,5 @@
 #include <plinc/interp.h>
+#include <plinc/version.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -206,6 +207,20 @@ PlincInitVals(PlincInterp *i)
     /* null */
     v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NULL;
     name = DEFNAME("null");
+    PlincPutDictName(i, i->systemdict, name, &v);
+
+    /* product */
+    v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | PLINC_ATTR_NOWRITE | 
+        strlen(PLINC_PRODUCT);
+    v.Val.Ptr = PLINC_PRODUCT;
+    name = DEFNAME("product");
+    PlincPutDictName(i, i->systemdict, name, &v);
+
+    /* version */
+    v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_STRING | PLINC_ATTR_NOWRITE | 
+        strlen(PLINC_VERSION);
+    v.Val.Ptr = PLINC_VERSION;
+    name = DEFNAME("version");
     PlincPutDictName(i, i->systemdict, name, &v);
 
     /* define some names */
