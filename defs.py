@@ -61,10 +61,9 @@ systemdict /def {
 % define the 'store' operator
 
 /store {
-    exch dup where
-        { 3 1 roll exch put }
-        { exch undefined }
-    ifelse
+    exch dup where not
+        { currentdict }
+    if 3 1 roll exch put
 } bind def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
