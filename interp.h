@@ -140,15 +140,22 @@ void           *PlincGetDict(PlincInterp *i, PlincDict *d,
                     PlincVal *key, PlincVal *val);
 void           *PlincLoadDict(PlincInterp *i, PlincVal *key, PlincVal *val);
 
+#ifdef WITH_REAL
+int             PlincFmtReal(float r, char *buf, int len);
+#endif
+
 void            PlincInitOps(PlincInterp *i, const PlincOp *o);
 void            PlincInitStackOps(PlincInterp *i);
 void            PlincInitTypeOps(PlincInterp *i);
 void            PlincInitPrintOps(PlincInterp *i);
 void            PlincInitArithOps(PlincInterp *i);
 void            PlincInitArrayOps(PlincInterp *i);
+void            PlincInitCvtOps(PlincInterp *i);
 void            PlincInitStringOps(PlincInterp *i);
 void            PlincInitDictOps(PlincInterp *i);
+#ifdef WITH_REAL
 void            PlincInitRealOps(PlincInterp *i);
+#endif
 void            PlincInitRelationalOps(PlincInterp *i);
 void            PlincInitControlOps(PlincInterp *i);
 void            PlincInitLoopOps(PlincInterp *i);

@@ -33,6 +33,7 @@ PlincInitInterp(PlincInterp *i, int opstack, int dictstack, int execstack)
         PlincInitTypeOps(i);
         PlincInitPrintOps(i);
         PlincInitArithOps(i);
+        PlincInitCvtOps(i);
 #ifdef WITH_REAL
         PlincInitRealOps(i);
 #endif
