@@ -199,6 +199,7 @@ int             PlincStatementComplete(char *buf, PlincUInt len);
 void           *PlincFindName(PlincHeapHeader *hh, char *name, size_t len);
 void           *PlincParseNum(PlincInterp *i, PlincVal *v, char *p, int len);
 void           *PlincGo(PlincInterp *i);
+void           *PlincExec(PlincInterp *i);
 void           *PlincExecStr(PlincInterp *i, const char *s);
 
 
