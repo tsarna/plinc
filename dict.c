@@ -70,8 +70,7 @@ PlincPutDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
         d->Len++;
 
         if (PLINC_TYPE(*key) == PLINC_TYPE_STRING) {
-            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr,
-                min(PLINC_SIZE(*key), PLINC_MAXNAMELEN));
+            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr, PLINC_SIZE(*key));
 
             if (v.Val.Ptr) {
                 v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
@@ -132,8 +131,7 @@ PlincGetDict(PlincInterp *i, PlincDict *d, PlincVal *key, PlincVal *val)
         r = i->invalidaccess;
     } else {
         if (PLINC_TYPE(*key) == PLINC_TYPE_STRING) {
-            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr,
-                min(PLINC_SIZE(*key), PLINC_MAXNAMELEN));
+            v.Val.Ptr = PlincName(i->Heap, key->Val.Ptr, PLINC_SIZE(*key));
 
             if (v.Val.Ptr) {
                 v.Flags = PLINC_ATTR_LIT | PLINC_TYPE_NAME;
