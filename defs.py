@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/python
 
 
-early = """
+early = r"""
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EARLY DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % The odd style here is a result of the fact that it's early in
@@ -32,7 +32,7 @@ early = """
 } bind def
 
 /==only {dup type /arraytype eq {==array} {==one} ifelse} bind def
-/== {==only (\\n) print} bind def
+/== {==only (\n) print} bind def
 /stack {0 1 count 3 sub {index =} for} bind def
 %/pstack {0 1 count 3 sub {index ==} for} bind def
 
