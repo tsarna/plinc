@@ -1,0 +1,83 @@
+A B 0
+				A B
+C D 0					=	ad - bc
+				C D
+E F 1
+
+
+ 1 2 0
+
+-1 1 1			= 9
+
+ 1 2 3
+
+0 * D(C D, E F) - 0 * D(A B, E F) + 1 * D(A B, C D)
+0 *  (CF - DE)  - 0 *  (AF - BE)  + 1 *  (AD - BC)
+					 (AD - BC)
+
+0 * D(-1 1,1 2) - 1 * D( 1 2,1 2) + 3 * D(1 2, -1 1)
+0 * (-1*2-1*1)  - 1 * (1*2-2*1)  + 3 * (1*1 - 2*-1)
+0 * (-2-1)      - 1 * (2 -2)     + 3 * (1 +2)
+0 * -3          - 1 * (0)        + 3 * 3
+0               - 0              + 9
+				   9
+
+A B X          +D(D Y, F Z)  -D(C Y, E Z)  +D(C D, E F)
+                
+C D Y          -D(B X, F Z)  +D(A X, E Z)  -D(A B, E F)
+
+E F Z          +D(B X, D Y)  -D(A X, C Y)  +D(A B, C D)
+============================================================
+A B X          +(DZ - YF)  -(CZ - YE)  +(CF - DE)
+                
+C D Y          -(BZ - XF)  +(AZ - XE)  -(AF - BE)
+
+E F Z          +(BY - XD)  -(AY - XC)  +(AD - BC)
+============================================================
+A B X          +(DZ - YF)  -(BZ - XF)  +(BY - XD)
+                
+C D Y          -(CZ - YE)  +(AZ - XE)  -(AY - XC)
+
+E F Z          +(CF - DE)  -(AF - BE)  +(AD - BC)
+============================================================
+A B X          +(DZ - YF)/det  -(BZ - XF)/det  +(BY - XD)/det
+                
+C D Y          -(CZ - YE)/det  +(AZ - XE)/det  -(AY - XC)/det
+
+E F Z          +(CF - DE)/det  -(AF - BE)/det  +(AD - BC)/det
+============================================================
+A B 0          +(D1 - 0F)/det  -(B1 - 0F)/det  +(B0 - 0D)/det
+                
+C D 0          -(C1 - 0E)/det  +(A1 - 0E)/det  -(A0 - 0C)/det
+
+E F 1          +(CF - DE)/det  -(AF - BE)/det  +(AD - BC)/det
+============================================================
+A B 0           (D1 - 0F)/det  -(B1 - 0F)/det   (B0 - 0D)/det
+                
+C D 0          -(C1 - 0E)/det   (A1 - 0E)/det  -(A0 - 0C)/det
+
+E F 1           (CF - DE)/det  -(AF - BE)/det  +det/det
+============================================================
+A B 0           (D  - 0 )/det  -(B  - 0 )/det   (0 - 0)/det
+                
+C D 0          -(C  - 0 )/det   (A  - 0 )/det  -(0 - 0)/det
+
+E F 1           (CF - DE)/det  -(AF - BE)/det  1
+============================================================
+A B 0           (D      )/det  -(B      )/det   (0)/det
+                
+C D 0          -(C      )/det   (A      )/det  -(0)/det
+
+E F 1           (CF - DE)/det  -(AF - BE)/det  1
+============================================================
+A B 0           (D)/det        -(B)/det        0
+                
+C D 0          -(C)/det         (A)/det        0
+
+E F 1           (CF - DE)/det  -(AF - BE)/det  1
+============================================================
+A B            D/det          -B/det      
+                
+C D            -C/det         A/det      
+
+E F            (CF - DE)/det  -(AF - BE)/det

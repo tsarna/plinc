@@ -4,7 +4,44 @@
 early = r"""
 % define the 'bind' operator
 
-/bind {} dup exec def
+/bind {} dup exec def % XXX
+
+% define the '>>' operator
+
+(>>) {
+    counttomark dup 2 mod 1 eq {rangecheck} if  %%% rangecheck XXX
+    2 idiv dup dict exch 
+        { dup 4 2 roll put }
+    repeat 
+    exch pop
+} bind def
+
+/$error <<
+    /newerror false
+    /errorname null
+    /command null
+    /errorinfo null
+    /ostack null
+    /estack null
+    /dstack null
+    /recordstacks true
+    /binary false
+>> def
+
+errordict /handleerror {
+    $error begin (Error: ) print errorname =only end ( in ) print command =only
+    recordstacks {
+        (\nOperand Stack:\n) print ostack {(   ) print =only } forall
+        (\nExecution Stack:\n) print estack {(   ) print =only } forall
+        (\nDictionary Stack:\n) print dstack {(   ) print =only } forall
+    } if (\n) print
+} bind put
+
+/handleerror {errordict /handleerror get exec} bind def
+
+errordict /stackunderflow {
+    $error dup /newerror true put /errorname /stackunderflow put stop
+} bind put
 
 % printing operators
 
@@ -24,17 +61,6 @@ early = r"""
 /prompt {
     (PL) print count 0 ne {(<) print count =only} if (> ) print flush
 } bind def
-
-% define the '>>' operator
-
-(>>) {
-    counttomark dup 2 mod 1 eq {rangecheck} if  %%% rangecheck XXX
-    2 idiv dup dict exch 
-        { dup 4 2 roll put }
-    repeat 
-    exch pop
-} bind def
-
 
 
 % define the 'store' operator

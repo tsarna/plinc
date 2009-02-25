@@ -1,0 +1,17 @@
+EXEC STRING
+EXEC FILE
+	tokenize, if result is executable, put it on exec, else put on op
+
+EXEC ARRAY
+	push first on execstack, or if len 1, replace self with contents
+	but if result is an array, put it on the opstack instead
+
+EXEC NAME
+	replace self with load of name
+
+EXEC OP
+	execute
+
+LIT ARRAY, LIT STRING, LIT NAME, LIT OP, LIT FILE
+INT, REAL, BOOL, DICT, MARK, NULL, SAVE, FONTID
+	push on op

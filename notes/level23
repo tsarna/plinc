@@ -1,0 +1,20 @@
+Syntax:
+<~
+binary tokens
+
+Operators:
+
+undef
+filter
+>>
+
+
+Unlikely:
+
+functions
+idiom recognition
+some filters (LZW, etc)
+packed arrays
+local/global refcounted VM
+resources
+graphics!

@@ -1,0 +1,18 @@
+/buf 20 string def
+/goline {20 mul 744 exch sub 48 exch moveto} def
+/x (VM bug for strings: N) def /Times-Roman findfont 18
+scalefont setfont 2 goline /s save def x
+20 89 put s restore x show
+0 goline (Version: ) show version show
+1 goline (version writeable: ) show version wcheck {(Y)} {(N)} ifelse show 
+3 goline (countdictstack ) show countdictstack buf cvs show
+4 goline (countexecstack ) show countexecstack buf cvs show
+5 goline (systemdict ) show systemdict dup length buf cvs show
+	( of ) show maxlength buf cvs show
+6 goline (errordict ) show errordict dup length buf cvs show
+	( of ) show maxlength buf cvs show
+7 goline (userdict ) show userdict dup length buf cvs show
+	( of ) show maxlength buf cvs show
+8 goline (vmstatus ) show vmstatus 3 -1 roll buf cvs show ( ) show
+      exch buf cvs show ( ) show buf cvs show
+showpage

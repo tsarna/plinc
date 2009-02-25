@@ -1,0 +1,5 @@
+/bind{0 1 2 index length{dup 3 1 roll get}loop}def
+
+
+% pass 2
+systemdict/userdict 200 dict put userdict begin

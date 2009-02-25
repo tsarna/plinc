@@ -1,0 +1,20 @@
+baseaddr length 	@ 			-> str
+string			@			-> int
+string|int		.makefunc		-> cfunc
+
+string /name		.label			-> string
+string int		.[rel]byte		-> remainder
+string int		.[rel]word[.be,.le]	-> remainder
+string int|string	.[rel]int[.be,.le]	-> remainder
+string string		.cstr			-> remainder
+string string		.str			-> remainder
+
+string			.get[rel]byte		-> remainder int
+string			.get[rel]word[.be,.le]	-> remainder int
+string			.get[rel]int[.be,.le]	-> remainder int
+string			.getcstr		-> remainder int
+string			.getstrlen		-> remainder int
+string int		.getstr			-> remainder int
+
+int			.in			-> int
+int int			.out			-> -

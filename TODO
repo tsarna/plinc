@@ -1,0 +1,258 @@
+Recent Milestones:
+
+M23	error handling logic in exec
+M22	basic exec rework
+M21	tokenizer fully functional, implements {}
+M20	new tokenizer replaces old
+M19	flt_pstr
+
+Future Milestones (unordered):
+
+fix dict put to allow overwrite!
+error handlers
+async execution (interrupt, etc)
+operators: for, run
+fix FmtReal to use trailing .0 always
+bug in ==... unmatched (?
+magic %files
+operators: bind, store, undef, >>
+mainloop
+vm
+dictionary access control via PlincDict instead of dict PlincVal
+access control audit (appropriate use of CAN_XXX everywhere)
+verify readonly/noaccess/etc don't *grant* privledges!
+more init refactoring... everything with malloc should be in main.
+
+
+OPERATOR SUMMARY
+
+*unimpl
+~written in plinc
+?may need rewrite in future milestones
+@needed for first file IO milestone
+
+Operand stack manipulation operators
+
+pop
+exch
+dup
+copy
+index
+roll
+clear
+count
+mark
+cleartomark
+counttomark
+
+Arithmetic and math operators
+
+add
+div
+idiv
+mod
+mul
+sub
+abs
+neg
+ceiling
+floor
+round
+truncate
+sqrt
+atan
+cos
+sin
+exp
+ln
+log
+rand
+srand
+rrand
+
+Array operators
+
+array
+[
+]~
+length
+get
+put
+getinterval
+putinterval
+aload
+astore
+copy
+?forall
+
+Dictionary operators
+
+dict
+length
+maxlength
+begin
+end
+def
+load
+store~
+get
+put
+known
+where
+copy
+?forall
+errordict
+systemdict
+userdict~
+currentdict
+countdictstack
+dictstack
+
+String operators
+
+string
+length
+get
+put
+getinterval
+putinterval
+copy
+?forall
+anchorsearch
+search
+token
+
+Relational, boolean, and bitwise operators
+
+!eq
+!ne
+ge
+gt
+le
+lt
+and
+not
+or
+xor
+true
+false
+bitshift
+
+Control operators
+
+exec
+if
+ifelse
+*for
+?repeat
+?loop
+?exit
+?stop
+?stopped
+countexecstack
+execstack
+*quit
+*start
+
+Type, attribute, and conversion operators
+
+type
+cvlit
+cvx
+xcheck
+executeonly
+noaccess
+readonly
+rcheck
+wcheck
+cvi
+cvn
+cvr
+cvrs
+cvs
+
+File operators
+
+file			(partial)
+closefile
+read
+write
+readhexstring
+writehexstring
+readstring
+writestring
+readline
+token
+bytesavailable
+flush
+flushfile
+resetfile
+status
+*run
+currentfile
+print
+=
+stack~
+==~
+pstack~
+prompt
+echo
+
+Virtual memory operators
+
+*save
+*restore 
+vmstatus
+
+Miscellaneous operators
+
+*bind		array bind array		(typecheck)
+			replaces exec names w/ value IF FOUND.
+			recurses on exec arrays
+null
+*usertime
+product
+version
+revision
+
+Coordinate system and matrix operators
+
+matrix
+initmatrix
+identmatrix
+defaultmatrix
+currentmatrix
+setmatrix
+translate
+scale
+rotate
+concat
+concatmatrix
+transform
+dtransform
+itransform
+idtransform
+invertmatrix
+
+
+
+Old milestones:
+
+M18	flt_hex and readhexstring/writehexstring
+M17	flt_str and file enchancements
+M16	product, revision, plincfile macros
+M15	bytesavailable, readline, currentfile, echo
+M14	inverting matrix operations
+M13	non-inverting matrix operations
+M12	default io op implementations
+M11	], =, stack, pstack
+M10	all conversion operators
+M9	implemented operators: putinterval (string, array), def
+M8	some init refatoring, incl gettings stacks from the heap
+M7	3 less missing miscelaneous operators
+M6	relational operators all implemented, and eq/ne rewritten
+M5	basic file operators implemented
+M4	removed DOEXEC semantics of dictionaries
+M3	implemented missing real operators
+M2	Fixed rand/rrand/srand
+M1	capable of basic interactive testing
